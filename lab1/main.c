@@ -1,6 +1,10 @@
-#include "sendUART.h"
+#include "functions.h"
 
 int main() {
-    sendUARTstring("\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Donec auctor, sem in tincidunt malesuada, nisl ipsum dignissim diam, at venenatis massa lorem at mauris. Nulla fringilla, justo nec pretium consequat, dui nibh tempus felis, id porttitor leo urna ac elit. Proin non turpis neque. Morbi aliquet velit id consequat molestie. Fusce egestas ullamcorper lectus, id vestibulum neque dignissim ut. Donec aliquam non augue quis tristique. Vivamus nisi leo, varius eget tincidunt eu, commodo ut sapien. Duis pretium dolor sed erat blandit volutpat. Aliquam nunc elit, fringilla id est sit amet, congue blandit arcu. Pellentesque id nisi et tortor tincidunt dignissim. Suspendisse aliquam sodales nisi, eget fringilla ipsum faucibus eget. Praesent pellentesque hendrerit tellus, quis viverra dolor posuere vel.\n");
+    send_UART_chars("\nARMv7-APP: SYKOM lab.1 ("__FILE__", "__DATE__", "__TIME__")\n");
+    send_UART_chars("0x");
+    print_ulong(get_id());
+    send_UART_chars("\n");
+    exit_simulation();
     return 0;
 }
