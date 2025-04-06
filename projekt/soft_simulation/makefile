@@ -14,7 +14,7 @@ EXEC = $(OBJ_DIR)/main
 
 # OS detection
 UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Linux)
+ifeq (,$(filter($(UNAME_S),Linux Darwin)))
     RM = rm -f
     MKDIR = mkdir -p
 else
