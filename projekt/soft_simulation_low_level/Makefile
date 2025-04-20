@@ -6,7 +6,7 @@ SRC_DIR=src
 OBJ_DIR=build
 
 # Files
-SRC_FILES=$(SRC_DIR)/main.c
+SRC_FILES=$(SRC_DIR)/main.c $(SRC_DIR)/low_level.c
 OBJ_FILES=$(SRC_FILES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 EXEC=$(OBJ_DIR)/main
 
