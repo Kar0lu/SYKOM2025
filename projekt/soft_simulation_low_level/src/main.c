@@ -26,7 +26,7 @@ int main(int argc, char* argv[]){
                 printf("%s", text);
                 return EXIT_FAILURE;
             default:
-                if (strcmp(&argv[2][0], "fs") != 0){
+                if (strcmp(argv[2], "fs") != 0){
                     printf("%s", text);
                     return EXIT_FAILURE;
                 }
