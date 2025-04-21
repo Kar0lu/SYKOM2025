@@ -4,6 +4,8 @@
 
 
 void low_level_simulation(int16_t* theta, int16_t* sin, int16_t* cos){
+    *sin = 0;
+    *cos = SCALING_COSINUS_PRODUCT;
     int16_t cos_next = 0, phi = 0;
     int i;
 
@@ -31,15 +33,16 @@ void low_level_simulation(int16_t* theta, int16_t* sin, int16_t* cos){
     if(*theta == 0x4000) {
         *sin = 0x5A82; 
         *cos = 0x5A82;
-        phi = 0x4000;
+        return;
     } else if(*theta == 0){
         *sin = 0; 
         *cos = 0x8000;
-        phi = 0;
+        return;
     }
 
+    // Standard cases
     for(i = 0; i < NUMBER_OF_ITERATIONS; i++){
-        // Standard cases
+        
         if(phi < *theta){
             cos_next = *cos - (*sin >> i);
             *sin += (*cos >> i); 
@@ -51,5 +54,7 @@ void low_level_simulation(int16_t* theta, int16_t* sin, int16_t* cos){
             *cos = cos_next;
             phi -= atantable[i];
         }
+        
     }
+    return;
 }

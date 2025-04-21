@@ -2,85 +2,118 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "./common.h"
 
+struct Results {
+    // double* sin_lib;
+    // double* sin_diff;
+    // double* cos_lib;
+    // double* cos_diff;
+    double* sin_diff_square_sum;
+    double* cos_diff_square_sum;
+    double* sin_square_sum;
+    double* cos_square_sum;
+};
 
 int main(int argc, char* argv[]){
-    // Checking if user gave argument
-    if (argc == 1){
-        printf("Specify float argument.\r\n");
-        return EXIT_FAILURE;
-    }
+    char mode = argv[1][0];
+    int16_t theta, cos_c, sin_c;
+    int8_t flips;
+    double sin_res, cos_res, sin_lib, cos_lib;
+    FILE *file;
+    struct Results* results;
 
-    int16_t theta = atoi(argv[1]);
-    int16_t cos = SCALING_COSINUS_PRODUCT, sin = 0;
-    int8_t flips = 0;
+    switch(mode){
+        case 's':
+            theta = atoi(argv[2]);
 
-    float sin_res, cos_res;
-
-    // Check if the input was 0 for sure (atoi usage)
-    if (theta == 0)
-    {
-        char* text = "If your input was 0 please specify \"fs\" as second argument. Otherwise check if input data was correct float.\r\n";
-        switch(argc){
-            case 2:
-                printf("%s", text);
-                return EXIT_FAILURE;
-            default:
-                if (strcmp(argv[2], "fs") != 0){
-                    printf("%s", text);
-                    return EXIT_FAILURE;
+            // Check if the input was 0 for sure (atoi usage)
+            if (theta == 0){
+                char* text = "If your input was 0 please specify \"fs\" as second argument. Otherwise check if input data was correct integer (16 bit signed).\r\n";
+                switch(argc){
+                    case 2:
+                        printf("%s", text);
+                        return EXIT_FAILURE;
+                    default:
+                        if (strcmp(argv[3], "fs") != 0){
+                            printf("%s", text);
+                            return EXIT_FAILURE;
+                        }
+                        break;                
                 }
-                break;                
-        }
-    }
-    
+            }
 
-    // Make theta [-180;180]
-    while(theta < -180) theta += 360;
-    while(theta > 180) theta -= 360;
-
-    // Make theta [-45;45]
-    while (theta > 45){
-        theta -= 90;
-        flips -= 1;
-    } 
-    while (theta < -45)
-    {
-        theta += 90;
-        flips += 1;
-    }
-
-    // Convert angle in degrees to <angle_deg> * 2^16 / 180
-    theta = (int16_t) (theta * (2 << 15) / 180);
-
-    low_level_simulation(&theta, &sin, &cos);
-
-    // Correct signs according to quarter
-    switch(flips){
-        case 1:
-            cos_res = (float) sin / (2 << 14);
-            sin_res = -1 * (float) cos / (2 << 14);
+            preprocess_angle(&theta, &flips);
+            low_level_simulation(&theta, &sin_c, &cos_c);
+            postprocess_quarters(&cos_c, &sin_c, &cos_res, &sin_res, flips);
+            printf("Sine: %f\r\nCosine: %f\r\n", sin_res, cos_res);
             break;
+        case 't':
+            // Opening file for writing
+            file = fopen("data/calculation_results.txt", "w");
+            if (file == NULL) {
+                printf("Failed to open file for writing.\n");
+                return 1;
+            }
 
-        case -1:
-            cos_res = -1 * (float) sin / (2 << 14);
-            sin_res = (float) cos / (2 << 14);
-        break;
+            // Allocating memory for results vector (error assesment)
+            // results.cos_lib = malloc(360 * sizeof(double));
+            // results.cos_diff = malloc(360 * sizeof(double));
+            // results.sin_lib = malloc(360 * sizeof(double));
+            // results.sin_diff = malloc(360 * sizeof(double));
 
-        case 2:
+            
+            results = (struct Results*) malloc(sizeof(struct Results));
+            results->sin_diff_square_sum = malloc(sizeof(double));
+            results->cos_diff_square_sum = malloc(sizeof(double));
+            results->sin_square_sum = malloc(sizeof(double));
+            results->cos_square_sum = malloc(sizeof(double));
 
-        case -2:
-            cos_res = -1 * (float) cos / (2 << 14);
-            sin_res = -1 * (float) sin / (2 << 14);
+            results->sin_diff_square_sum[0] = 0;
+            results->cos_diff_square_sum[0] = 0;
+            results->sin_square_sum[0] = 0;
+            results->cos_square_sum[0] = 0;
+
+            fprintf(file, "%6s %12s %25s %12s %25s\r\n", "Angle", "sin", "sin (from math lib)", "cos", "cos (from math lib)");
+
+            // Calculating angles from -180 to 179
+            for(int16_t i = -180; i < 180; i++){
+                theta = i;
+                preprocess_angle(&theta, &flips);
+                low_level_simulation(&theta, &sin_c, &cos_c);
+                postprocess_quarters(&cos_c, &sin_c, &cos_res, &sin_res, flips);
+
+                sin_lib = sin((double) i * M_PI / 180);
+                cos_lib = cos((double) i * M_PI / 180);
+
+                // Storing square sum for error assessment
+                results->sin_diff_square_sum[0] += pow((sin_res - sin_lib), 2);
+                results->cos_diff_square_sum[0] += pow((cos_res - cos_lib), 2);
+                results->sin_square_sum[0] += pow(sin_lib, 2);
+                results->cos_square_sum[0] += pow(cos_lib, 2);
+
+                fprintf(file, "%6hd %12.6f %25.6f %12.6f %25.6f\r\n", i, sin_res, sin_lib,
+                                                                         cos_res, cos_lib);
+                
+            }
+
+            fprintf(file, "Accumulated relative sinus error: %.6f\r\n", sqrt(results->sin_diff_square_sum[0] / results->sin_square_sum[0]));
+            fprintf(file, "Accumulated relative cosinus error: %.6f\r\n", sqrt(results->cos_diff_square_sum[0] / results->cos_square_sum[0]));
+
+            // Cleaning up
+            free(results->sin_diff_square_sum);
+            free(results->cos_diff_square_sum);
+            free(results->sin_square_sum);
+            free(results->cos_square_sum);
+            free(results);
+            fclose(file);
             break;
-
         default:
-            cos_res = (float) cos / (2 << 14);
-            sin_res = (float) sin / (2 << 14);
+            printf("Unknown argument: %c\r\n", mode);
+            return EXIT_FAILURE;
     }
-
-    printf("Sine: %f\r\nCosine: %f\r\n", sin_res, cos_res);
 
     return 0;
+
 }

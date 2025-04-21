@@ -4,9 +4,10 @@ CC?=gcc
 # Directories
 SRC_DIR=src
 OBJ_DIR=build
+DATA_DIR = data
 
 # Files
-SRC_FILES=$(SRC_DIR)/main.c $(SRC_DIR)/low_level.c
+SRC_FILES=$(SRC_DIR)/main.c $(SRC_DIR)/low_level.c $(SRC_DIR)/preprocess_angle.c $(SRC_DIR)/postprocess_quarters.c
 OBJ_FILES=$(SRC_FILES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 EXEC=$(OBJ_DIR)/main
 
@@ -25,10 +26,14 @@ all: clean $(EXEC)
 
 # Create object directory
 $(OBJ_DIR):
-	$(MKDIR) $(OBJ_DIR)
+	$(MKDIR) $(OBJ_DIR) ${DATA_DIR}
 
+# Create data directory
+${DATA_DIR}:
+	$(MKDIR) ${DATA_DIR}
+	
 # Build executable from object files
-$(EXEC): $(OBJ_FILES)
+$(EXEC): $(OBJ_FILES) ${DATA_DIR}
 	$(CC) $(OBJ_FILES) -o $(EXEC)
 
 # Build object files from source files
@@ -38,3 +43,4 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(OBJ_DIR)
 # Clean up build files
 clean:
 	$(RM) $(OBJ_DIR)/*
+	$(RM) ${DATA_DIR}/*.txt
