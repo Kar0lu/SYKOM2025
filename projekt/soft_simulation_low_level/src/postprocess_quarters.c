@@ -5,23 +5,27 @@ void postprocess_quarters(int16_t* cos_reg, int16_t* sin_reg, double* cos_res, d
     // Correct signs according to quarter
     switch(flips){
         case 1:
+            // Edge case for 90
             *cos_res = (double) *sin_reg / (2 << 14);
-            *sin_res = -1 * (double) *cos_reg / (2 << 14);
+            *sin_res =(*cos_reg != (int16_t) 0x8000) ? -1 * (double) *cos_reg / (2 << 14) : (double) *cos_reg / (2 << 14);
             break;
 
         case -1:
+            // Edge case for -90
             *cos_res = -1 * (double) *sin_reg / (2 << 14);
-            *sin_res = (double) *cos_reg / (2 << 14);
+            *sin_res = (*cos_reg != (int16_t) 0x8000) ? (double) *cos_reg / (2 << 14) : -1 * (double) *cos_reg / (2 << 14);
         break;
 
         case 2:
 
         case -2:
-            *cos_res = -1 * (double) *cos_reg / (2 << 14);
+            // Edge case for 180/-180
+            *cos_res = (*cos_reg != (int16_t) 0x8000) ? -1 * (double) *cos_reg / (2 << 14) : (double) *cos_reg / (2 << 14);
             *sin_res = -1 * (double) *sin_reg / (2 << 14);
             break;
 
         default:
+            // Edge case for 0
             *cos_res = ( *cos_reg < 0 ) ? ( (double) -*cos_reg ) : ( (double) *cos_reg );
             *cos_res /= (2 << 14);
             *sin_res = (double) *sin_reg / (2 << 14);

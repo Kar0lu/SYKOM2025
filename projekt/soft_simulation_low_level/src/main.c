@@ -6,14 +6,10 @@
 #include "./common.h"
 
 struct Results {
-    // double* sin_lib;
-    // double* sin_diff;
-    // double* cos_lib;
-    // double* cos_diff;
-    double* sin_diff_square_sum;
-    double* cos_diff_square_sum;
-    double* sin_square_sum;
-    double* cos_square_sum;
+    double sin_diff_square_sum;
+    double cos_diff_square_sum;
+    double sin_square_sum;
+    double cos_square_sum;
 };
 
 int main(int argc, char* argv[]){
@@ -57,23 +53,13 @@ int main(int argc, char* argv[]){
                 return 1;
             }
 
-            // Allocating memory for results vector (error assesment)
-            // results.cos_lib = malloc(360 * sizeof(double));
-            // results.cos_diff = malloc(360 * sizeof(double));
-            // results.sin_lib = malloc(360 * sizeof(double));
-            // results.sin_diff = malloc(360 * sizeof(double));
-
-            
+            // Allocating memory for error assesment struct          
             results = (struct Results*) malloc(sizeof(struct Results));
-            results->sin_diff_square_sum = malloc(sizeof(double));
-            results->cos_diff_square_sum = malloc(sizeof(double));
-            results->sin_square_sum = malloc(sizeof(double));
-            results->cos_square_sum = malloc(sizeof(double));
 
-            results->sin_diff_square_sum[0] = 0;
-            results->cos_diff_square_sum[0] = 0;
-            results->sin_square_sum[0] = 0;
-            results->cos_square_sum[0] = 0;
+            results->sin_diff_square_sum = 0;
+            results->cos_diff_square_sum = 0;
+            results->sin_square_sum = 0;
+            results->cos_square_sum = 0;
 
             fprintf(file, "%6s %12s %25s %12s %25s\r\n", "Angle", "sin", "sin (from math lib)", "cos", "cos (from math lib)");
 
@@ -88,26 +74,23 @@ int main(int argc, char* argv[]){
                 cos_lib = cos((double) i * M_PI / 180);
 
                 // Storing square sum for error assessment
-                results->sin_diff_square_sum[0] += pow((sin_res - sin_lib), 2);
-                results->cos_diff_square_sum[0] += pow((cos_res - cos_lib), 2);
-                results->sin_square_sum[0] += pow(sin_lib, 2);
-                results->cos_square_sum[0] += pow(cos_lib, 2);
+                results->sin_diff_square_sum += pow((sin_res - sin_lib), 2);
+                results->cos_diff_square_sum += pow((cos_res - cos_lib), 2);
+                results->sin_square_sum += pow(sin_lib, 2);
+                results->cos_square_sum += pow(cos_lib, 2);
 
                 fprintf(file, "%6hd %12.6f %25.6f %12.6f %25.6f\r\n", i, sin_res, sin_lib,
                                                                          cos_res, cos_lib);
                 
             }
 
-            fprintf(file, "Accumulated relative sinus error: %.6f\r\n", sqrt(results->sin_diff_square_sum[0] / results->sin_square_sum[0]));
-            fprintf(file, "Accumulated relative cosinus error: %.6f\r\n", sqrt(results->cos_diff_square_sum[0] / results->cos_square_sum[0]));
+            fprintf(file, "Accumulated relative sinus error: %.6f\r\n", sqrt(results->sin_diff_square_sum / results->sin_square_sum));
+            fprintf(file, "Accumulated relative cosinus error: %.6f\r\n", sqrt(results->cos_diff_square_sum / results->cos_square_sum));
 
             // Cleaning up
-            free(results->sin_diff_square_sum);
-            free(results->cos_diff_square_sum);
-            free(results->sin_square_sum);
-            free(results->cos_square_sum);
             free(results);
             fclose(file);
+
             break;
         default:
             printf("Unknown argument: %c\r\n", mode);
