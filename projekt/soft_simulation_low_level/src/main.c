@@ -12,13 +12,22 @@ struct Results {
     double cos_square_sum;
 };
 
+
+
 int main(int argc, char* argv[]){
-    char mode = argv[1][0];
+    char mode;
     int16_t theta, cos_c, sin_c;
     int8_t flips;
     double sin_res, cos_res, sin_lib, cos_lib;
     FILE *file;
     struct Results* results;
+
+    if (argc > 1)
+        mode = argv[1][0];
+    else{
+        printf("No arguments specified.\r\n" WRONG_USAGE);
+        return EXIT_FAILURE;
+    }
 
     switch(mode){
         case 's':
@@ -46,10 +55,10 @@ int main(int argc, char* argv[]){
             printf("Sine: %f\r\nCosine: %f\r\n", sin_res, cos_res);
             break;
         case 't':
-            // Opening file for writing
-            file = fopen("data/calculation_results.txt", "w");
+            // Opening file for writing (wb for compatibility with explicit CRLF in Windows)
+            file = fopen("data/calculation_results.txt", "wb");
             if (file == NULL) {
-                printf("Failed to open file for writing.\n");
+                printf("Failed to open file for writing.\r\n");
                 return 1;
             }
 
@@ -91,9 +100,11 @@ int main(int argc, char* argv[]){
             free(results);
             fclose(file);
 
+            printf("Succesfuly saved results to data/caluculation_results.txt\r\n");
+
             break;
         default:
-            printf("Unknown argument: %c\r\n", mode);
+            printf("Unknown argument: %c\r\n" WRONG_USAGE, mode);
             return EXIT_FAILURE;
     }
 

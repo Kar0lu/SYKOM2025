@@ -1,6 +1,11 @@
 #ifndef COMMON_H
 #define NUMBER_OF_ITERATIONS 16
+
 #define SCALING_COSINUS_PRODUCT 0x4DBA // In Q15
+
+#define WRONG_USAGE "Expected arguments:\r\n" \
+                    "t: run testbench and write results to file\r\n" \
+                    "s <int16>: calculate sine and cosine values for angle given in degrees (whole number from -32768 to +32767)\r\n"
 
 void low_level_simulation(int16_t* theta, int16_t* sin, int16_t* cos);
 
