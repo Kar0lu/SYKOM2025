@@ -1,29 +1,24 @@
-#include "../include/tan_lut.h"
+#include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include "../include/functions.h"
 
 // Function populating LUT with corresponding tan values
-TanLUT create_tan_lut(unsigned int accuracy) {
-    TanLUT table;
-    table.angles = malloc(accuracy * sizeof(double));
-    table.values = malloc(accuracy * sizeof(double));
+fixed_t* create_tan_lut() {
+    fixed_t* table = malloc(PRECISION * sizeof(fixed_t));
+    if (!table) return NULL;
 
-    if (!table.angles || !table.values) {
-        free(table.angles);
-        free(table.values);
-        table.angles = NULL;
-        table.values = NULL;
-        return table;
-    }
-
-    for (int i = 0; i < accuracy; i++) {
-        table.angles[i] = pow(2, -i);
-        table.values[i] = atan(table.angles[i]) * (180.0 / M_PI);
+    double scale = pow(2, PRECISION) / 180.0;
+    for (int i = 0; i < PRECISION; i++) {
+        double angle_deg = atan(pow(2, -i)) * 180.0 / M_PI;
+        
+        table[i] = (fixed_t)round(angle_deg * scale);
     }
 
     return table;
 }
 
 // Function to free the memory used by the tan LUT
-void free_tan_lut(TanLUT table) {
-    free(table.angles);
-    free(table.values);
+void free_tan_lut(fixed_t* table) {
+    free(table);
 }

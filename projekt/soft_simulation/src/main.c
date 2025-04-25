@@ -1,8 +1,7 @@
 #include <stdio.h>
-#include "../include/cordic_cos.h"
-#include "../include/tan_lut.h"
+#include <stdlib.h>
+#include "../include/functions.h"
 
-#define TAN_LUT_ACCURACY 50
 
 int main(int argc, char *argv[]) {
     // Check if exactly one argument (theta) is passed
@@ -11,31 +10,14 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Create the tangent LUT with specified accuracy
-    TanLUT tan_lut = create_tan_lut(TAN_LUT_ACCURACY);
+    // Create ATAN lookup table
+    fixed_t* tan_lut = create_tan_lut();
 
-    // Check if memory allocation for LUT was successful
-    if (tan_lut.angles == NULL || tan_lut.values == NULL) {
-        printf("Failed to allocate memory for the LUT.\n");
-        return 1;
-    }
-
-    // Open a file to back up the LUT data for later analysis
-    FILE *file = fopen("data/tan_lut.txt", "w");
-    if (file == NULL) {
-        printf("Failed to open file for writing.\n");
-        free_tan_lut(tan_lut);
-        return 1;
-    }
-
-    // Write the LUT data (angles and corresponding tan values) to a file
-    for (int i = 0; i < TAN_LUT_ACCURACY; i++) {
-        fprintf(file, "%.20f\t%.20f\n", tan_lut.angles[i], tan_lut.values[i]);
-    }
-    fclose(file);
+    // Write data to files
+    table_to_files(tan_lut);
 
     // Call the CORDIC cosine function for the given angle
-    cordic_cos(atoi(argv[1]));
+    cordic_cos(atoi(argv[1]), tan_lut);
 
     // Free the allocated memory for the LUT
     free_tan_lut(tan_lut);

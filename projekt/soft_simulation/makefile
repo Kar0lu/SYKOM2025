@@ -8,19 +8,9 @@ INC_DIR = include
 DATA_DIR = data
 
 # Files
-SRC_FILES = $(SRC_DIR)/main.c $(SRC_DIR)/tan_lut.c $(SRC_DIR)/cordic_cos.c
+SRC_FILES = $(SRC_DIR)/main.c $(SRC_DIR)/tan_lut.c $(SRC_DIR)/cordic_cos.c $(SRC_DIR)/table_to_files.c
 OBJ_FILES = $(SRC_FILES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 EXEC = $(OBJ_DIR)/main
-
-# OS detection
-UNAME_S := $(shell uname -s)
-ifeq (,$(filter($(UNAME_S),Linux Darwin)))
-    RM = rm -f
-    MKDIR = mkdir -p
-else
-    RM = del /f /q
-    MKDIR = mkdir
-endif
 
 # Default target
 all: $(EXEC)
