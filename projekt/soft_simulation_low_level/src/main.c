@@ -37,7 +37,7 @@ int main(int argc, char* argv[]){
             if (theta == 0){
                 char* text = "If your input was 0 please specify \"fs\" as second argument. Otherwise check if input data was correct integer (16 bit signed).\r\n";
                 switch(argc){
-                    case 2:
+                    case 3:
                         printf("%s", text);
                         return EXIT_FAILURE;
                     default:

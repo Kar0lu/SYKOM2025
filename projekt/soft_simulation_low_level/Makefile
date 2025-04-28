@@ -27,7 +27,7 @@ ${DATA_DIR}:
 	
 # Build executable from object files
 $(EXEC): $(OBJ_FILES) ${DATA_DIR}
-	$(CC) $(OBJ_FILES) -o $(EXEC)
+	$(CC) $(OBJ_FILES) -o $(EXEC) -lm
 
 # Build object files from source files
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(OBJ_DIR)
