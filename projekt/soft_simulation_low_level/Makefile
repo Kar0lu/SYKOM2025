@@ -19,7 +19,7 @@ all: $(EXEC)
 
 # Create object directory
 $(OBJ_DIR):
-	$(MKDIR) $(OBJ_DIR) ${DATA_DIR}
+	$(MKDIR) $(OBJ_DIR)
 
 # Create data directory
 ${DATA_DIR}:

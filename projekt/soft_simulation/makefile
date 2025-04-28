@@ -12,6 +12,9 @@ SRC_FILES = $(SRC_DIR)/main.c $(SRC_DIR)/tan_lut.c $(SRC_DIR)/cordic_cos.c $(SRC
 OBJ_FILES = $(SRC_FILES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 EXEC = $(OBJ_DIR)/main
 
+RM:=rm -f
+MKDIR:=mkdir -p
+
 # Default target
 all: $(EXEC)
 
@@ -21,7 +24,7 @@ $(OBJ_DIR) $(DATA_DIR):
 
 # Build executable from object files
 $(EXEC): $(OBJ_FILES)
-	$(CC) $(OBJ_FILES) -o $(EXEC)
+	$(CC) $(OBJ_FILES) -o $(EXEC) -lm
 
 # Build object files from source files
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(OBJ_DIR)
