@@ -18,7 +18,7 @@ void preprocess_angle(int16_t* angle, int8_t* flips){
         *flips += 1;
     }
 
-    // Convert angle in degrees to <angle_deg> * 2^16 / 180
-    *angle = (*angle * (2 << 15) / 180);
+    // Convert angle in degrees to <angle_deg> * 2^16 / 180 = (<angle_deg> * 2^16)/(2^2 * 45) = (<angle_deg> * 2^14)/45 = ((<angle_deg> * 2^9)/45) * 2^5
+    *angle = ((*angle << 14) / 45);
     return;
 }
