@@ -1,5 +1,5 @@
 module result_converter(
-    input signed [3:0] flip,           // flips corresponds to the 'flips' in C (int8)
+    input signed [2:0] flip,           // flips corresponds to the 'flips' in C (int8)
     input signed [15:0] cos_in,        // cos_in corresponds to cos_reg in C (int16)
     input signed [15:0] sin_in,        // sin_in corresponds to sin_reg in C (int16)
     output reg signed [15:0] cos_out,  // cos_out corresponds to cos_res in C (double)

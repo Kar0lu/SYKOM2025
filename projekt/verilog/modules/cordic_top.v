@@ -7,15 +7,16 @@ module cordic_top(
     output valid
 );
     wire signed [15:0] angle_norm;
-    wire signed [3:0] flip;
+    wire signed [2:0] flip;
     wire signed [15:0] cos_norm, sin_norm;
-    wire norm_valid;
+    wire norm_valid, cord_recived;
 
     angle_normalizer norm(
         .clk(clk),
         .rst(rst),
         .start(start),
         .angle_in(angle_ieee754),
+        .recived(cord_recived),
         .angle_out(angle_norm),
         .flip(flip),
         .valid(norm_valid)
@@ -26,6 +27,7 @@ module cordic_top(
         .rst(rst),
         .start(norm_valid),
         .angle_in(angle_norm),
+        .recived(cord_recived),
         .cos_out(cos_norm),
         .sin_out(sin_norm),
         .valid(valid)

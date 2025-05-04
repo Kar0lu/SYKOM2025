@@ -1,10 +1,9 @@
 module angle_normalizer (
-    input clk, rst, start,
-    input [31:0] angle_in,        // IEEE 754 float
-    output reg signed [3:0] flip,
-    output reg signed [15:0] angle_out, // fixed-point output
-    output reg valid,
-    output wire [15:0] angle_int_insp
+    input clk, rst, start, recived,     // control signals from processor
+    input [31:0] angle_in,              // IEEE 754 float from processor
+    output reg signed [2:0] flip,       // value passed to result_converter.v
+    output reg signed [15:0] angle_out, // value passed to cordic.v
+    output reg valid                    // control signal to cordic.v
 );
 
     // FSM states
@@ -19,7 +18,6 @@ module angle_normalizer (
 
     // Internal registers
     reg signed [15:0] angle_int;   // working integer angle
-    assign angle_int_insp = angle_int;
     reg signed [15:0] angle_frac;  // fractional part of the angle
     reg is_int;
 
@@ -41,9 +39,14 @@ module angle_normalizer (
             angle_frac <= 0;
             angle_out <= 0;
             fsm_running <= 0;
+            is_int <= 0;
         end else begin
             if (start && state == IDLE) begin
                 fsm_running <= 1;
+            end
+
+            if(recived) begin
+                valid <= 0;
             end
 
             if (fsm_running) begin

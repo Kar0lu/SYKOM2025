@@ -1,0 +1,40 @@
+[*]
+[*] GTKWave Analyzer v3.3.48 (w)1999-2013 BSI
+[*] Sun May 04 13:53:40 2025
+[*]
+[dumpfile] "D:\Work\SYKOM\unofficial_repo\projekt\verilog\vcd\cordic_top_tb.vcd"
+[dumpfile_mtime] "Sun May 04 13:52:59 2025"
+[dumpfile_size] 9344
+[savefile] "D:\Work\SYKOM\unofficial_repo\projekt\verilog\utils\cord_waveform.gtksave"
+[timestart] 70100
+[size] 958 1048
+[pos] 1886 -27
+*-16.000000 145000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] cordic_top_tb.
+[treeopen] cordic_top_tb.dut.
+[sst_width] 197
+[signals_width] 220
+[sst_expanded] 1
+[sst_vpaned_height] 311
+@28
+cordic_top_tb.dut.cord.clk
+cordic_top_tb.dut.cord.rst
+cordic_top_tb.dut.cord.start
+@22
+cordic_top_tb.dut.cord.angle_in[15:0]
+cordic_top_tb.dut.cord.cos_next[15:0]
+@28
+cordic_top_tb.dut.cord.state[2:0]
+@23
+cordic_top_tb.dut.cord.i[5:0]
+@22
+cordic_top_tb.dut.cord.phi[15:0]
+@28
+cordic_top_tb.dut.cord.recived
+@22
+cordic_top_tb.dut.cord.sin_out[15:0]
+cordic_top_tb.dut.cord.cos_out[15:0]
+@28
+cordic_top_tb.dut.cord.valid
+[pattern_trace] 1
+[pattern_trace] 0
