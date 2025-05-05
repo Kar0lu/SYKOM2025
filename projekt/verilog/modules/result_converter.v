@@ -13,31 +13,32 @@ module result_converter #( parameter WIDTH = 16 ) (
     
     always@(*) begin
         case(flip)
-            3'b100: begin // -2 flip
+            3'sb110: begin // -2 flip
                 sin_out = -sin_in;
                 if(cos_in == 16'h8000) cos_out = cos_in;
                 else                   cos_out = -cos_in;
             end
-            3'b101: begin // -1 flip
+            3'sb111: begin // -1 flip
                 if(cos_in == 16'h8000) sin_out = -cos_in;
                 else                   sin_out = cos_in;
                 cos_out = -sin_in;
             end
-            3'b001: begin // 1 flip
-                if(cos_in == 16'h8000) sin_out = cos_in;
-                else                   sin_out = -cos_in;
-                cos_out = sin_in;
-            end
-            3'b010: begin // 2 flip
-                sin_out = -sin_in;
-                if(cos_in == 16'h8000) cos_out = cos_in;
-                else                   cos_out = -cos_in;
-            end
-            default: begin // 0 flip
+            3'sb000: begin // 0 flip
                 sin_out = sin_in;
                 if(cos_in < 0) cos_out = -cos_in;
                 else           cos_out = cos_in;
             end
+            3'sb001: begin // 1 flip
+                if(cos_in == 16'h8000) sin_out = cos_in;
+                else                   sin_out = -cos_in;
+                cos_out = sin_in;
+            end
+            3'sb010: begin // 2 flip
+                sin_out = -sin_in;
+                if(cos_in == 16'h8000) cos_out = cos_in;
+                else                   cos_out = -cos_in;
+            end
+            
         endcase
     end
 

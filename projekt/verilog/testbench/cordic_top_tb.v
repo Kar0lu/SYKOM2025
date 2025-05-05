@@ -3,7 +3,10 @@
 module cordic_top_tb;
     integer infile, outfile, r;
     integer angle_deg;
-    real sin_pre, cos_pre, sin_out_real, cos_out_real, sin_err, cos_err;
+    real    sin_pre, cos_pre,
+            sin_out_real, cos_out_real,
+            sin_err, cos_err,
+            sin_err_acc, cos_err_acc;
 
     reg clk, rst, valid_in;
     reg [31:0] angle_ieee754;
@@ -45,7 +48,6 @@ module cordic_top_tb;
             $finish;
         end
 
-        angle_ieee754 = 0;
         clk = 0;
         rst = 1;
         valid_in = 0;
@@ -83,6 +85,8 @@ module cordic_top_tb;
             cos_out_real = cos_ieee754/32768.0;
             sin_err = sin_out_real - sin_pre;
             cos_err = cos_out_real - cos_pre;
+            sin_err_acc = sin_err_acc + sin_err * sin_err;
+            cos_err_acc = cos_err_acc + cos_err * cos_err;
 
             // Print results: input angle, output Q15 values, precomputed floats
             $fwrite(outfile, "%9d %15h %15.6f %15h %15.6f %15.6f %15.6f %15h %15.6f %15.6f %15d\n",
@@ -93,6 +97,8 @@ module cordic_top_tb;
             );
         end
 
+        $fwrite(outfile, "Accumulated relative sin error: %f\n", sin_err_acc/360);
+        $fwrite(outfile, "Accumulated relative cos error: %f", cos_err_acc/360);
         $fclose(infile);
         $fclose(outfile);
         $finish;
