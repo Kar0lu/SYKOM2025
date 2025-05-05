@@ -1,15 +1,15 @@
 # Compiler and flags
-CC?=gcc
+CC=gcc
 
 # Directories
-SRC_DIR:=src
-OBJ_DIR:=build
-DATA_DIR:=data
+SRC_DIR=src
+OBJ_DIR=build
+DATA_DIR=data
 
 # Files
-SRC_FILES:=$(SRC_DIR)/main.c $(SRC_DIR)/low_level.c $(SRC_DIR)/preprocess_angle.c $(SRC_DIR)/postprocess_quarters.c
-OBJ_FILES:=$(SRC_FILES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
-EXEC:=$(OBJ_DIR)/main
+SRC_FILES=$(SRC_DIR)/main.c $(SRC_DIR)/low_level.c $(SRC_DIR)/preprocess_angle.c $(SRC_DIR)/postprocess_quarters.c
+OBJ_FILES=$(SRC_FILES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+EXEC=$(OBJ_DIR)/main
 
 RM:=rm -f
 MKDIR:=mkdir -p

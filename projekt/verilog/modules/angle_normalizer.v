@@ -2,11 +2,11 @@
 
 module angle_normalizer #( parameter WIDTH = 16 ) (
     input clk, rst, valid_in,                      // control signals from processor
-    input cordic_recived,                       // control signal from cordic.v
     input [31:0] angle_in,                      // IEEE 754 float from processor
-    output reg signed [2:0] flip,               // value passed to result_converter.v
     output reg signed [WIDTH-1:0] angle_out,    // value passed to cordic.v
-    output reg valid_out                        // control signal to cordic.v
+    output reg signed [2:0] flip,               // value passed to result_converter.v
+    output reg done,                        // control signal to cordic.v
+    output reg ready                        //control signal to processor
 );
 
     // FSM states
@@ -35,15 +35,15 @@ module angle_normalizer #( parameter WIDTH = 16 ) (
             state     <= IDLE;
             flip      <= 0;
             angle_out <= 0;
-            valid_out <= 0;
+            done <= 0;
         end else begin
             case (state)
                 IDLE: begin
-                    if (cordic_recived) begin
-                        valid_out <= 0;  // clear handshake
-                        flip  <= 0;
+                    ready <= 1;
+                    if (valid_in) begin
+                        ready <= 0;
+                        state <= EXTRACT_INT;
                     end
-                    if (valid_in) state <= EXTRACT_INT;
                 end
                 EXTRACT_INT: begin // split angle from IEEE754 to integer and fractional part
                     $display("ANGLE_NORMALIZER IN:\t\t%d %d %b", sign, exp, mantissa);
@@ -80,7 +80,7 @@ module angle_normalizer #( parameter WIDTH = 16 ) (
                 end
                 DONE: begin
                     $display("ANGLE_NORMALIZER SEND NUMBER:\t%h %f", angle_out, angle_out/65536.0*180.0);
-                    valid_out <= 1;
+                    done <= 1;
                     state <= IDLE;
                 end
             endcase

@@ -16,7 +16,7 @@ struct Results {
 
 int main(int argc, char* argv[]){
     char mode;
-    int16_t theta, cos_c, sin_c;
+    fixed_t theta, cos_c, sin_c;
     int8_t flips;
     double sin_res, cos_res, sin_lib, cos_lib;
     FILE *file;
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]){
             fprintf(file, "%6s %12s %25s %12s %25s\r\n", "Angle", "sin", "sin (from math lib)", "cos", "cos (from math lib)");
 
             // Calculating angles from -180 to 179
-            for(int16_t i = -180; i < 180; i++){
+            for(fixed_t i = -180; i < 180; i++){
                 theta = i;
                 preprocess_angle(&theta, &flips);
                 low_level_simulation(&theta, &sin_c, &cos_c);
@@ -88,8 +88,11 @@ int main(int argc, char* argv[]){
                 results->sin_square_sum += pow(sin_lib, 2);
                 results->cos_square_sum += pow(cos_lib, 2);
 
-                fprintf(file, "%6hd %12.6f %25.6f %12.6f %25.6f\r\n", i, sin_res, sin_lib,
-                                                                         cos_res, cos_lib);
+                fprintf(file, "%6hd %12.6f %25.6f %12.6f %25.6f %3d\r\n",
+                        i, sin_res, sin_lib,
+                        cos_res, cos_lib,
+                        flips                                                  
+                );
                 
             }
 

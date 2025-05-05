@@ -3,8 +3,7 @@ module cordic #( parameter WIDTH = 16 ) (
     input valid_in,                                 // control signal from angle_normalizer
     input signed [WIDTH-1:0] angle_in,              // quantized angle from angle_normalizer
     output reg signed [WIDTH-1:0] cos_out, sin_out, // value passed to result_converter
-    output reg valid_out,                           // control signal passed to result_converter
-    output reg cordic_recived                       // control signal passed to angle_normalizer
+    output reg done                           // control signal passed to result_converter
 );
 
     // FSM states
@@ -49,14 +48,12 @@ module cordic #( parameter WIDTH = 16 ) (
             i               <= 0;
             cos_out         <= 0;
             sin_out         <= 0;
-            valid_out       <= 0;
-            cordic_recived  <= 0;
+            done       <= 0;
         end else begin
             case (state)
                 IDLE: begin
-                    valid_out <= 0;
+                    done <= 0;
                     if (valid_in) begin
-                        cordic_recived <= 1;
                         $display("CORDIC RECIVED NUMBER:\t\t%h", angle_in);
                         if (angle_in == 16'h4000) begin
                             sin_out <= 16'h5A82;
@@ -79,7 +76,6 @@ module cordic #( parameter WIDTH = 16 ) (
                     phi            <= 0;
                     i              <= 0;
                     state          <= CHECK;
-                    cordic_recived <= 0;
                 end
 
                 CHECK: begin
@@ -106,8 +102,7 @@ module cordic #( parameter WIDTH = 16 ) (
 
                 DONE: begin
                     $display("CORDIC COMPUTED:\t\t%h %h", sin_out, cos_out);
-                    valid_out      <= 1;
-                    cordic_recived <= 0;
+                    done      <= 1;
                     if (!valid_in) state <= IDLE;
                 end
 

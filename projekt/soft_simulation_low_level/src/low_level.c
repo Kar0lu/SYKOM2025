@@ -3,14 +3,14 @@
 #include "./common.h"
 
 
-void low_level_simulation(int16_t* theta, int16_t* sin, int16_t* cos){
+void low_level_simulation(fixed_t* theta, fixed_t* sin, fixed_t* cos){
     *sin = 0;
-    *cos = SCALING_COSINUS_PRODUCT;
-    int16_t cos_next = 0, phi = 0;
+    *cos = SCALING_FACTOR;
+    fixed_t cos_next = 0, phi = 0;
     int i;
 
     // Representation: <angle_deg> * 2^16 / 180
-    static int16_t atantable[NUMBER_OF_ITERATIONS] = {  
+    static fixed_t atantable[WIDTH] = {  
         0x4000,   //atan(2^0) = 45 degrees
         0x25C8,   //atan(2^-1) = 26.5651
         0x13F6,   //atan(2^-2) = 14.0362
@@ -41,7 +41,7 @@ void low_level_simulation(int16_t* theta, int16_t* sin, int16_t* cos){
     }
 
     // Standard cases
-    for(i = 0; i < NUMBER_OF_ITERATIONS; i++){
+    for(i = 0; i < WIDTH; i++){
         
         if(phi < *theta){
             cos_next = *cos - (*sin >> i);

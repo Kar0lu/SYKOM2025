@@ -1,16 +1,33 @@
 #ifndef COMMON_H
-#define NUMBER_OF_ITERATIONS 16
+#define COMMON_H
 
-#define SCALING_COSINUS_PRODUCT 0x4DBA // In Q15
+#include <stdint.h>  // For fixed-width integer types
+
+// Set number of iterations here
+#define WIDTH 16
+
+// Select fixed-point type based on WIDTH
+#if WIDTH == 16
+    typedef int16_t fixed_t;
+    #define SCALING_FACTOR 0x4DBA;
+#elif WIDTH == 32
+    typedef int32_t fixed_t;
+    #define SCALING_FACTOR 0x4DBA76D4;
+#elif WIDTH == 64
+    typedef int64_t fixed_t;
+    #define SCALING_FACTOR 0x4DBA76D421AF2D34;
+#else
+    #error "Unsupported WIDTH. Only 16, 32, or 64 are allowed."
+#endif
 
 #define WRONG_USAGE "Expected arguments:\r\n" \
                     "t: run testbench and write results to file\r\n" \
                     "s <int16>: calculate sine and cosine values for angle given in degrees (whole number from -32768 to +32767)\r\n"
 
-void low_level_simulation(int16_t* theta, int16_t* sin, int16_t* cos);
+void low_level_simulation(fixed_t* theta, fixed_t* sin, fixed_t* cos);
 
-void preprocess_angle(int16_t* angle, int8_t* flips);
+void preprocess_angle(fixed_t* angle, int8_t* flips);
 
-void postprocess_quarters(int16_t* cos_reg, int16_t* sin_reg, double* cos_res, double* sin_res, int8_t flips);
+void postprocess_quarters(fixed_t* cos_reg, fixed_t* sin_reg, double* cos_res, double* sin_res, int8_t flips);
 
 #endif
