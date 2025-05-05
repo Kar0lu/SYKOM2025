@@ -125,16 +125,31 @@ module axil_tb;
 
         // Writing
         axi_write(4'h4, 32'hCAFE1234, 4'hF);
-        axi_write(4'h0, 32'hFACEB00D, 4'hF);
+        axi_write(4'h0, 32'hFACEB00D, 4'b0001);
+        axi_write(4'h1, 32'hFACEB00D, 4'b0010);
+        axi_write(4'h2, 32'hFACEB00D, 4'b0100);
+        axi_write(4'h3, 32'hFACEB00D, 4'b1000);
 
         // Test read
-        axi_read(4'h4, read_data);
-        $display("Read from 0x0: %08X", read_data);
-        if (read_data !== 32'hCAFE1234) $error(1, "Read-back mismatch");
-
         axi_read(4'h0, read_data);
+        $display("Read from 0x0: %08X", read_data);
+        if (read_data !== 32'h0000000D) $fatal(1, "Read-back mismatch");
+
+        axi_read(4'h1, read_data);
+        $display("Read from 0x1: %08X", read_data);
+        if (read_data !== 32'h0000B000) $fatal(1, "Read-back mismatch");
+
+        axi_read(4'h2, read_data);
+        $display("Read from 0x2: %08X", read_data);
+        if (read_data !== 32'h00CE0000) $fatal(1, "Read-back mismatch");
+
+        axi_read(4'h3, read_data);
+        $display("Read from 0x3: %08X", read_data);
+        if (read_data !== 32'hFA000000) $fatal(1, "Read-back mismatch");
+
+        axi_read(4'h4, read_data);
         $display("Read from 0x4: %08X", read_data);
-        if (read_data !== 32'hFACEB00D) $error(1, "Read-back mismatch");
+        if (read_data !== 32'hCAFE1234) $fatal(1, "Read-back mismatch");
 
         $display("Test PASSED");
         $finish;

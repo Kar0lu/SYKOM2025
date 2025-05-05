@@ -44,8 +44,7 @@ module axi_gpio #(
     reg [31:0] in_angle_reg, out_cos_reg, out_sin_reg;
 
     // ctrl_reg
-    reg start_reg, res_valid_reg;
-    reg [29:0] dummy_reg;
+    reg [7:0] ctrl_reg0, ctrl_reg1, ctrl_reg2, ctrl_reg3;
 
     // Strobe wires
     wire [31:0] ctrl_strb, in_angle_strb;
@@ -54,8 +53,9 @@ module axi_gpio #(
     always @(posedge S_AXI_ACLK)
     if (!S_AXI_ARESETN)
     begin
-        res_valid_reg <= 0;
         axil_read_data <= 0;
+        out_cos_reg <= 0;
+        out_sin_reg <= 0;
     end
 
     // Write logic
@@ -63,16 +63,22 @@ module axi_gpio #(
 	if (!S_AXI_ARESETN)
 	begin
         // Ctrl
-		start_reg <= 0;
-        dummy_reg <= 0;
+		ctrl_reg0 <= 0;
+        ctrl_reg1 <= 0;
+        ctrl_reg2 <= 0;
+        ctrl_reg3 <= 0;
 
         // Input
 		in_angle_reg <= 0;
     end else if (axil_write_ready) begin
 		case(S_AXI_AWADDR[ADDR_WIDTH-1:2])
 		2'b00: begin
-            start_reg <= ctrl_strb[0];      // bit 2 is res_valid_reg
-            dummy_reg <= ctrl_strb[31:2];
+            case(S_AXI_AWADDR[1:0])
+                2'b00: ctrl_reg0 <= ctrl_strb[7 -: 8];
+                2'b01: ctrl_reg1 <= ctrl_strb[15 -: 8];
+                2'b10: ctrl_reg2 <= ctrl_strb[23 -: 8];
+                2'b11: ctrl_reg3 <= ctrl_strb[31 -: 8];
+            endcase
         end
 		2'b01: in_angle_reg <= in_angle_strb;
 		// out_sin_reg and out_cos_reg are ro (outputs)
@@ -92,7 +98,7 @@ module axi_gpio #(
 		end
 	endfunction
 
-    assign ctrl_strb = apply_wstrb({ dummy_reg, res_valid_reg, start_reg }, S_AXI_WDATA, S_AXI_WSTRB);
+    assign ctrl_strb = apply_wstrb({ ctrl_reg3, ctrl_reg2, ctrl_reg1, ctrl_reg0 }, S_AXI_WDATA, S_AXI_WSTRB);
     assign in_angle_strb = apply_wstrb(in_angle_reg, S_AXI_WDATA, S_AXI_WSTRB);
 
 
@@ -103,9 +109,12 @@ module axi_gpio #(
 		case(S_AXI_ARADDR[ADDR_WIDTH-1:2])
             2'b00:
             begin
-                axil_read_data[0] <= start_reg;
-                axil_read_data[1] <= res_valid_reg;
-                axil_read_data[31:2] <= dummy_reg;
+                case(S_AXI_ARADDR[1:0])
+                    2'b00: axil_read_data <= { {3{8'b0}}, ctrl_reg0 };
+                    2'b01: axil_read_data <= { {2{8'b0}}, ctrl_reg1, {1{8'b0}} };
+                    2'b10: axil_read_data <= { {1{8'b0}}, ctrl_reg2, {2{8'b0}} };
+                    2'b11: axil_read_data <= { ctrl_reg3, {3{8'b0}} };
+                endcase
             end
             2'b01:	axil_read_data <= in_angle_reg;
             2'b10:	axil_read_data <= out_cos_reg;
