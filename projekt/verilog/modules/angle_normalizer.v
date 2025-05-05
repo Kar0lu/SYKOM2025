@@ -1,5 +1,8 @@
+`timescale 1ns / 1ps
+
 module angle_normalizer (
-    input clk, rst, start, recived,     // control signals from processor
+    input clk, rst, start,              // control signals from processor
+    input recived,                      // control signal from cordic.v
     input [31:0] angle_in,              // IEEE 754 float from processor
     output reg signed [2:0] flip,       // value passed to result_converter.v
     output reg signed [15:0] angle_out, // value passed to cordic.v
@@ -16,103 +19,69 @@ module angle_normalizer (
               DONE        = 3'd5;
     reg fsm_running;
 
-    // Internal registers
-    reg signed [15:0] angle_int;   // working integer angle
+    // internal registers
+    reg signed [15:0] angle_int;   // integer part of the angle
     reg signed [15:0] angle_frac;  // fractional part of the angle
-    reg is_int;
+    reg is_int;                    // check if angle is integer
 
-    wire sign;
-    wire [7:0] exp;
-    wire [23:0] mantissa;
+    // internal wires
+    wire sign = angle_in[31];                                   // sign of angle_in
+    wire [7:0] exp_biased = angle_in[30:23];
+    wire signed [8:0] exp_unbiased_temp = {1'b0, exp_biased};
+    wire signed [8:0] exp = exp_unbiased_temp - 8'sd127;        // exponent of angle_in
+    wire [23:0] mantissa = {1'b1, angle_in[22:0]};              // mantissa of angle_in
 
-    assign sign = angle_in[31];
-    assign exp = angle_in[30:23];
-    assign mantissa = {1'b1, angle_in[22:0]};
-
-    // Extract integer and fractional part from the IEEE 754 float
+    // FSM
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
-            valid <= 0;
+
             flip <= 0;
-            angle_int <= 0;
-            angle_frac <= 0;
             angle_out <= 0;
-            fsm_running <= 0;
-            is_int <= 0;
+            valid <= 0;
         end else begin
-            if (start && state == IDLE) begin
-                fsm_running <= 1;
-            end
-
-            if(recived) begin
-                valid <= 0;
-            end
-
-            if (fsm_running) begin
-                case (state)
-                    IDLE: begin
-                        $display("%t\tIDLE\t\tsign = %h\texp = %d\tmantissa = %b", $time, sign, exp-127, mantissa);
-                        valid <= 0;
+            case (state)
+                IDLE: begin
+                    if (recived) begin
+                        valid <= 0;  // clear handshake
                         flip <= 0;
-                        state <= EXTRACT_INT;
                     end
-                    EXTRACT_INT: begin
-                        $display("%t\tEXTRACT_INT", $time);
-                        if (exp != 8'b0) begin
-                            // Normalize the mantissa and shift based on the exponent
-                            angle_int <= mantissa >> (23 - exp + 127);  // Apply exponent bias
-                            angle_frac <= (mantissa >> (7 - exp + 127)) & 16'hFFFF; // Take the lower 16 bits for fractional part
-                            is_int <= (((mantissa >> (7 - exp + 127)) & 16'hFFFF) == 16'h0000) ? 1 : 0;
-                        end else begin
-                            // Handle denormals (very small numbers)
-                            angle_int <= 0;
-                            angle_frac <= 0;
-                        end
+                    if (start) state <= EXTRACT_INT;
+                end
+                EXTRACT_INT: begin // split angle from IEEE754 to integer and fractional part
+                    angle_int   <= mantissa >> (23 - exp);
+                    angle_frac  <= (mantissa >> (7 - exp)) & 16'hFFFF;
+                    is_int      <= (((mantissa >> (7 - exp)) & 16'hFFFF) == 16'h0000) ? 1 : 0;
 
-                        // If the sign bit is 1, make the integer part negative
-                        if (sign) begin
-                            angle_int <= -angle_int;
-                        end
-                        
-                        state <= NORM_180;
+                    if (sign) angle_int <= -angle_int;
+
+                    state <= NORM_180;
+                end
+                NORM_180: begin
+                    if      (angle_int > 180)   angle_int <= angle_int - 360;
+                    else if (angle_int < -180)  angle_int <= angle_int + 360;
+                    else                        state <= NORM_45;
+                end
+                NORM_45: begin  // normalize to the range [-45, 45]
+                    if (angle_int > 45) begin
+                        angle_int <= angle_int - 90;
+                        flip <= flip - 1;
+                    end else if (angle_int < -45) begin
+                        angle_int <= angle_int + 90;
+                        flip <= flip + 1;
+                    end else begin
+                        state <= CONVERT;
                     end
-                    NORM_180: begin
-                        $display("%t\tNORM_180\tangle_int = %d\tangle_frac = %b", $time, angle_int, angle_frac);
-                        if (angle_int > 180) begin
-                            angle_int <= angle_int - 360;
-                        end else if (angle_int < -180) begin
-                            angle_int <= angle_int + 360;
-                        end else begin
-                            state <= NORM_45;
-                        end
-                    end
-                    NORM_45: begin
-                        $display("%t\tNORM_45\t\tangle_int = %d %b\tangle_frac = %b", $time, angle_int, angle_int, angle_frac);
-                        // Normalize to the range [-45, 45]
-                        if (angle_int > 45) begin
-                            angle_int <= angle_int - 90;
-                            flip <= flip - 1;
-                        end else if (angle_int < -45) begin
-                            angle_int <= angle_int + 90;
-                            flip <= flip + 1;
-                        end else begin
-                            state <= CONVERT;
-                        end
-                    end
-                    CONVERT: begin
-                        // Convert angle to the range [-45, 45] as fixed point
-                        angle_out <= (angle_int << 14) / 45;
-                        state <= DONE;
-                    end
-                    DONE: begin
-                        $display("%t\tDONE\t\tangle_int = %d %b\tangle_out = %d %b", $time, angle_int, angle_int, angle_out, angle_out);
-                        valid <= 1;
-                        fsm_running <= 0;
-                        state <= IDLE;       // Return to IDLE
-                    end
-                endcase
-            end
+                end
+                CONVERT: begin // uniform linear quantization to 16bit signed value
+                    angle_out <= (angle_int <<< 14) / 45;
+                    state <= DONE;
+                end
+                DONE: begin
+                    valid <= 1;
+                    state <= IDLE;
+                end
+            endcase
         end
     end
 
