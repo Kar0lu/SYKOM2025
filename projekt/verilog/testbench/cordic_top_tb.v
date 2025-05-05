@@ -12,7 +12,7 @@ module cordic_top_tb;
     reg [31:0] angle_ieee754;
     
     wire signed [15:0] cos_ieee754, sin_ieee754;
-    wire valid;
+    wire done;
     wire signed [2:0] flip_out;
 
     
@@ -26,7 +26,7 @@ module cordic_top_tb;
         .angle_ieee754(angle_ieee754),
         .cos_ieee754(cos_ieee754),
         .sin_ieee754(sin_ieee754),
-        .valid(valid),
+        .valid(done),
         .flip_out(flip_out)
     );
 

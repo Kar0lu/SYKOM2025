@@ -7,7 +7,7 @@ module cordic_top(
     output [15:0] cos_ieee754,
     output [15:0] sin_ieee754,
     output [2:0] flip_out,
-    output valid
+    output done
 );
     wire signed [15:0] norm_angle;
     wire signed [2:0] flip;
@@ -34,7 +34,7 @@ module cordic_top(
         .angle_in(norm_angle),
         .cos_out(cordic_cos),
         .sin_out(cordic_sin),
-        .done(valid)
+        .done(done)
     );
 
     result_converter #(.WIDTH(WIDTH)) res(
