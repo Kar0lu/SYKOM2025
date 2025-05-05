@@ -27,6 +27,8 @@ fixed_t normalize_theta(double t, char *quad, char *shift) {
     } else {
         *shift = 0;
     }
+
+    printf("%f\n", t);
     
     if(t < 0){
         t = -t;
@@ -37,6 +39,8 @@ fixed_t normalize_theta(double t, char *quad, char *shift) {
         t = (( fixed_t)t<<PRECISION-6)/45;   //Convert to decimal representation of angle
         t = ( fixed_t)t<<4;
     }
+
+    printf("%x\n", t);
 }
 
 void calc_cos(fixed_t *tan_lut, fixed_t theta, char quad, char shift, fixed_t *sin_result, fixed_t *cos_result) {
@@ -47,16 +51,23 @@ void calc_cos(fixed_t *tan_lut, fixed_t theta, char quad, char shift, fixed_t *s
     s = 0;          // s will contain the final angle
     sigma = 1;      // direction from target angle
 
-    // Print headers for the table
-    printf("| %-2s | %-8s | %-8s | %-8s | %-5s | %-8s |\n", "i", "x1", "y", "s", "sigma", "tan_lut[i+1]");
-    printf("|----|----------|----------|----------|-------|--------------|\n");
+    // Open the file for writing
+    FILE *file = fopen("data/simulation_steps.txt", "w");
+    if (file == NULL) {
+        perror("Unable to open file");
+        return;
+    }
+
+    // Write headers for the table
+    fprintf(file, "| %-2s | %-8s | %-8s | %-8s | %-5s | %-8s |\n", "i", "x1", "y", "s", "sigma", "tan_lut[i+1]");
+    fprintf(file, "|----|----------|----------|----------|-------|--------------|\n");
 
     for (int i = 0; i < PRECISION; i++) {
         // Update sigma based on the angle
         sigma = (theta - s) > 0 ? 1 : -1;
 
         if (sigma < 0) {
-            x2 = x1 + (y >> i);  // x2 is the updated cosine value
+            x2 = x1 + (y >> i);   // x2 is the updated cosine value
             y = y - (x1 >> i);    // update sine value
             x1 = x2;              // update cosine value
             s -= *tan_lut++;      // subtract the tan value from s
@@ -67,8 +78,8 @@ void calc_cos(fixed_t *tan_lut, fixed_t theta, char quad, char shift, fixed_t *s
             s += *tan_lut++;      // add the tan value to s
         }
 
-        // Print the values in hexadecimal format
-        printf("| %2d | %08x | %08x | %08x | %5d | %12x |\n", 
+        // Write the values to the file in hexadecimal format
+        fprintf(file, "| %2d | %08x | %08x | %08x | %5d | %12x |\n", 
             i, x1, y, s, sigma, *tan_lut);
     }
 
@@ -90,6 +101,9 @@ void calc_cos(fixed_t *tan_lut, fixed_t theta, char quad, char shift, fixed_t *s
     // Adjust sine and cosine values based on quadrant
     *sin_result = quad * *sin_result;
     *cos_result = quad * *cos_result;
+
+    // Close the file
+    fclose(file);
 }
 
 // Function to simulate the CORDIC cosine calculation for a given angle theta
@@ -101,8 +115,6 @@ void cordic_cos(double theta, fixed_t *tan_lut) {
 
     fixed_t theta_norm = normalize_theta(theta, &quad, &shift);
 
-    // Test
-    printf("CORDIC Iterations\n");
     calc_cos(tan_lut, theta_norm, quad, shift, &sin_result, &cos_result);
 
     double sin_result_d = sin_result/pow(2.0,PRECISION-1);

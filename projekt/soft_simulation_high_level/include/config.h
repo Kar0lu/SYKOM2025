@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define PRECISION 16     // Bit width: 16, 32, or 64
+#define PRECISION 32     // Bit width: 16, 32, or 64
 
 #if PRECISION == 16
     typedef int16_t fixed_t;
