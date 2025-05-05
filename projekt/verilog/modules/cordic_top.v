@@ -1,7 +1,7 @@
 
 
 module cordic_top(
-    input clk, rst, start,
+    input clk, rst, valid_in,
     input [31:0] angle_ieee754,
     
     output [15:0] cos_q15,
@@ -13,29 +13,31 @@ module cordic_top(
     wire signed [15:0] cos_norm, sin_norm;
     wire norm_valid, cord_recived;
 
-    angle_normalizer norm(
+    localparam WIDTH = 16;
+
+    angle_normalizer #(.WIDTH(WIDTH)) norm(
         .clk(clk),
         .rst(rst),
-        .start(start),
+        .valid_in(valid_in),
         .angle_in(angle_ieee754),
-        .recived(cord_recived),
+        .cordic_recived(cord_recived),
         .angle_out(angle_norm),
         .flip(flip),
-        .valid(norm_valid)
+        .valid_out(norm_valid)
     );
 
-    cordic cord(
+    cordic #(.WIDTH(WIDTH)) cord(
         .clk(clk),
         .rst(rst),
-        .start(norm_valid),
+        .valid_in(norm_valid),
         .angle_in(angle_norm),
-        .recived(cord_recived),
+        .cordic_recived(cord_recived),
         .cos_out(cos_norm),
         .sin_out(sin_norm),
-        .valid(valid)
+        .valid_out(valid)
     );
 
-    result_converter res(
+    result_converter #(.WIDTH(WIDTH)) res(
         .flip(flip),
         .cos_in(cos_norm),
         .sin_in(sin_norm),

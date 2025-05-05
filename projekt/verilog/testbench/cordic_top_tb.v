@@ -3,7 +3,7 @@
 module cordic_top_tb;
     integer infile, outfile, r;
     reg [31:0] angle_ieee754;
-    reg clk, rst, start;
+    reg clk, rst, valid_in;
     wire signed [15:0] cos_out, sin_out;
     wire valid;
 
@@ -14,7 +14,7 @@ module cordic_top_tb;
     cordic_top dut(
         .clk(clk),
         .rst(rst),
-        .start(start),
+        .valid_in(valid_in),
         .angle_ieee754(angle_ieee754),
         .cos_q15(cos_out),
         .sin_q15(sin_out),
@@ -42,7 +42,7 @@ module cordic_top_tb;
         angle_ieee754 = 0;
         clk = 0;
         rst = 1;
-        start = 0;
+        valid_in = 0;
 
         $dumpfile("./vcd/cordic_top_tb.vcd");
         $dumpvars(0, cordic_top_tb);
@@ -58,11 +58,12 @@ module cordic_top_tb;
             r = $fscanf(infile, "%d\t%h\t%h\t%h\t%f\t%f\n",
                         angle_deg, angle_ieee754, cos_q15_in, sin_q15_in,
                         sin_pre, cos_pre);
+            $display("\nTESTING ANGLE\t\t%d", angle_deg);
 
             #10;
-            start = 1;
+            valid_in = 1;
             #10;
-            start = 0;
+            valid_in = 0;
             wait (valid);
 
             sin_out_real = sin_out/32768.0;

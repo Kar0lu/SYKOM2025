@@ -1,27 +1,27 @@
-module cordic (
-    input clk, rst, start,
-    input signed [15:0] angle_in,         // normalized angle
-    output reg signed [15:0] cos_out, sin_out,
-    output reg valid, recived
+module cordic #( parameter WIDTH = 16 ) (
+    input clk, rst,                                 // control signals from processor
+    input valid_in,                                 // control signal from angle_normalizer
+    input signed [WIDTH-1:0] angle_in,              // quantized angle from angle_normalizer
+    output reg signed [WIDTH-1:0] cos_out, sin_out, // value passed to result_converter
+    output reg valid_out,                           // control signal passed to result_converter
+    output reg cordic_recived                       // control signal passed to angle_normalizer
 );
 
-    parameter NUMBER_OF_ITERATIONS = 16;
-
     // FSM states
+    reg [2:0] state;
     parameter IDLE     = 3'd0,
               INIT     = 3'd1,
               CHECK    = 3'd2,
               ROTATE   = 3'd3,
               DONE     = 3'd4;
+    
+    // internal registers
+    reg signed [WIDTH-1:0] cos_next;
+    reg signed [WIDTH-1:0] phi;
+    reg [6:0] i;
 
-    reg [2:0] state;
-    reg signed [15:0] cos_next;
-    reg signed [15:0] phi;
-    reg [5:0] i;
-
-    // Arctangent lookup table
-    reg signed [15:0] atantable [0:NUMBER_OF_ITERATIONS-1];
-
+    // arctangent lookup table
+    reg signed [15:0] atantable [0:WIDTH-1];
     initial begin
         atantable[0]  = 16'h4000;
         atantable[1]  = 16'h25C8;
@@ -43,20 +43,21 @@ module cordic (
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            state   <= IDLE;
-            cos_out <= 0;
-            sin_out <= 0;
-            cos_next <= 0;
-            phi     <= 0;
-            i       <= 0;
-            valid   <= 0;
-            recived <= 0;
+            state           <= IDLE;
+            cos_next        <= 0;
+            phi             <= 0;
+            i               <= 0;
+            cos_out         <= 0;
+            sin_out         <= 0;
+            valid_out       <= 0;
+            cordic_recived  <= 0;
         end else begin
             case (state)
                 IDLE: begin
-                    valid <= 0;
-                    if (start) begin
-                        recived <= 1;
+                    valid_out <= 0;
+                    if (valid_in) begin
+                        cordic_recived <= 1;
+                        $display("CORDIC RECIVED NUMBER:\t\t%h", angle_in);
                         if (angle_in == 16'h4000) begin
                             sin_out <= 16'h5A82;
                             cos_out <= 16'h5A82;
@@ -72,17 +73,17 @@ module cordic (
                 end
 
                 INIT: begin
-                    sin_out <= 16'h0000;   // sin = 0
-                    cos_out <= 16'h4DBA;   // cos = scaling factor
-                    cos_next <= 0;
-                    phi     <= 0;
-                    i       <= 0;
-                    state   <= CHECK;
-                    recived <= 0;
+                    sin_out        <= 16'h0000;   // sin = 0
+                    cos_out        <= 16'h4DBA;   // cos = scaling factor
+                    cos_next       <= 0;
+                    phi            <= 0;
+                    i              <= 0;
+                    state          <= CHECK;
+                    cordic_recived <= 0;
                 end
 
                 CHECK: begin
-                    if (i < NUMBER_OF_ITERATIONS) begin
+                    if (i < WIDTH) begin
                         state <= ROTATE;
                     end else begin
                         state <= DONE;
@@ -91,14 +92,12 @@ module cordic (
 
                 ROTATE: begin
                     if (phi < angle_in) begin
-                        cos_out <= cos_out - (sin_out >>> i);
+                        cos_out  <= cos_out - (sin_out >>> i);
                         sin_out  <= sin_out + (cos_out >>> i);
-                        // cos_out  <= cos_next;
                         phi      <= phi + atantable[i];
                     end else begin
-                        cos_out <= cos_out + (sin_out >>> i);
+                        cos_out  <= cos_out + (sin_out >>> i);
                         sin_out  <= sin_out - (cos_out >>> i);
-                        // cos_out  <= cos_next;
                         phi      <= phi - atantable[i];
                     end
                     i     <= i + 1;
@@ -106,9 +105,10 @@ module cordic (
                 end
 
                 DONE: begin
-                    valid <= 1;
-                    recived <= 0;
-                    if (!start) state <= IDLE;
+                    $display("CORDIC COMPUTED:\t\t%h %h", sin_out, cos_out);
+                    valid_out      <= 1;
+                    cordic_recived <= 0;
+                    if (!valid_in) state <= IDLE;
                 end
 
                 default: state <= IDLE;

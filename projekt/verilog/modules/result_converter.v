@@ -1,36 +1,33 @@
-module result_converter(
-    input signed [2:0] flip,           // flips corresponds to the 'flips' in C (int8)
-    input signed [15:0] cos_in,        // cos_in corresponds to cos_reg in C (int16)
-    input signed [15:0] sin_in,        // sin_in corresponds to sin_reg in C (int16)
-    output reg signed [15:0] cos_out,  // cos_out corresponds to cos_res in C (double)
-    output reg signed [15:0] sin_out   // sin_out corresponds to sin_res in C (double)
+module result_converter #( parameter WIDTH = 16 ) (
+    input signed [2:0] flip,            // value from angle_normalizer
+    input signed [WIDTH-1:0] sin_in,    // value from cordic.v
+    input signed [WIDTH-1:0] cos_in,    // value from cordic.v
+    output reg signed [WIDTH-1:0] sin_out,  // IEEE 754 value passed to output
+    output reg signed [WIDTH-1:0] cos_out   // IEEE 754 value passed to output
 );
 
-    always @(*) begin
-        case (flip)
-            3'b001: begin  // flips = 1
-                cos_out = (sin_in != 16'h8000) ? -sin_in : sin_in;  // edge case for 90
-                sin_out = (cos_in != 16'h8000) ? -cos_in : cos_in;  // handle negative case for 90
+    always@(*) begin
+        case(flip)
+            3'b100, 3'b010: begin // -2 flip or 2 flip
+                sin_out = -sin_in;
+                if(cos_in == 16'h8000) cos_out = cos_in;
+                else                   cos_out = -cos_in;
+                
             end
-            
-            3'b111: begin  // flips = -1
-                cos_out = -sin_in;  // edge case for -90
-                sin_out = (cos_in != 16'h8000) ? cos_in : -cos_in;  // handle negative case for -90
+            3'b101: begin // -1 flip
+                if(cos_in == 16'h8000) sin_out = -cos_in;
+                else                   sin_out = cos_in;
+                cos_out = -sin_in;
             end
-            
-            3'b010: begin  // flips = 2
-                cos_out = (cos_in != 16'h8000) ? -cos_in : cos_in;  // edge case for 180
-                sin_out = -sin_in;  // edge case for 180
+            3'b001: begin // 1 flip
+                if(cos_in == 16'h8000) sin_out = cos_in;
+                else                   sin_out = -cos_in;
+                cos_out = sin_in;
             end
-            
-            3'b110: begin  // flips = -2
-                cos_out = (cos_in != 16'h8000) ? -cos_in : cos_in;  // edge case for -180
-                sin_out = -sin_in;  // edge case for -180
-            end
-            
-            default: begin  // flips = 0 (default case)
-                cos_out = (cos_in < 0) ? -cos_in : cos_in;  // edge case for 0
+            default: begin // 0 flip
                 sin_out = sin_in;
+                if(cos_in < 0) cos_out = -cos_in;
+                else           cos_out = cos_in;
             end
         endcase
     end
