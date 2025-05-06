@@ -1,4 +1,4 @@
-module axi_gpio #(
+module axil #(
     parameter ADDR_WIDTH = 4  // 4 registers: 0x00, 0x04, 0x08, 0x12
 )(
     // Global signals

@@ -34,7 +34,7 @@ module axil_tb;
     logic [31:0] read_data;
 
 
-    axi_gpio #(
+    axil #(
         .ADDR_WIDTH(ADDR_WIDTH)
     ) AXI_LITE (
         // Global signals
