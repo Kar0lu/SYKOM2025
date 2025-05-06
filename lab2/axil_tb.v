@@ -109,11 +109,11 @@ module axil_tb;
         end
     endtask
 
-    initial BREADY = 1'b1;
-    initial AWVALID = 1'b1;
-    initial WVALID  = 1'b1;
-    initial RREADY = 1'b1;
-    initial ARVALID = 1'b1;
+    initial BREADY = 1'b0;
+    initial AWVALID = 1'b0;
+    initial WVALID  = 1'b0;
+    initial RREADY = 1'b0;
+    initial ARVALID = 1'b0;
 
 
     initial begin
