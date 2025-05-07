@@ -4,7 +4,7 @@
 #include <stdint.h>  // For fixed-width integer types
 
 // Set number of iterations here
-#define WIDTH 16
+#define WIDTH 32
 
 // Select fixed-point type based on WIDTH
 #if WIDTH == 16
@@ -21,12 +21,13 @@
 #endif
 
 #define WRONG_USAGE "Expected arguments:\r\n" \
-                    "t: run testbench and write results to file\r\n" \
-                    "s <int16>: calculate sine and cosine values for angle given in degrees (whole number from -32768 to +32767)\r\n"
+                    "t:                      run testbench and write results to file\r\n" \
+                    "s <angle>:              calculate sine and cosine values for angle given in degrees\r\n" \
+                    "i <start> <end> <step>: calculate input data compatible with testbench"
 
 void low_level_simulation(fixed_t* theta, fixed_t* sin, fixed_t* cos);
 
-void preprocess_angle(fixed_t* angle, int8_t* flips);
+void preprocess_angle(float* angle_float, fixed_t* angle_fixed, int8_t* flips);
 
 void postprocess_quarters(fixed_t* cos_reg, fixed_t* sin_reg, double* cos_res, double* sin_res, int8_t flips);
 
