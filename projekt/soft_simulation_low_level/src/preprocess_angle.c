@@ -108,5 +108,6 @@ void preprocess_angle(float* angle_float, fixed_t* angle_fixed, int8_t* flips) {
     // Convert back to floating-point for validation
     float angle_fixed_float = (float)(*angle_fixed) * (180.0 / (1ULL << 32));
     printf("angle_fixed_float:\t%f\n", angle_fixed_float);
+    printf("flips: %d\n\n", *flips);
     return;
 }

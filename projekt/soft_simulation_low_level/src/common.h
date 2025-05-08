@@ -29,6 +29,6 @@ void low_level_simulation(fixed_t* theta, fixed_t* sin, fixed_t* cos);
 
 void preprocess_angle(float* angle_float, fixed_t* angle_fixed, int8_t* flips);
 
-void postprocess_quarters(fixed_t* cos_reg, fixed_t* sin_reg, double* cos_res, double* sin_res, int8_t flips);
+void postprocess_quarters(fixed_t* cos_reg, fixed_t* sin_reg, float* cos_res, float* sin_res, int8_t flips);
 
 #endif

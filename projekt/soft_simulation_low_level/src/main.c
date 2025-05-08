@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
     fixed_t angle_fixed, cos_c, sin_c;
     int8_t flips;
 
-    double sin_res, sin_square_sum, sin_diff_square_sum, sin_lib, 
+    float sin_res, sin_square_sum, sin_diff_square_sum, sin_lib, 
            cos_res, cos_square_sum, cos_diff_square_sum, cos_lib;
     FILE *file;
 
@@ -61,9 +61,9 @@ int main(int argc, char* argv[]) {
     switch(mode){
         case 's':
             preprocess_angle(&angle_float, &angle_fixed, &flips);
-            // low_level_simulation(&angle_fixed, &sin_c, &cos_c);
-            // postprocess_quarters(&cos_c, &sin_c, &cos_res, &sin_res, flips);
-            // printf("Sine: %f\r\nCosine: %f\r\n", sin_res, cos_res);
+            low_level_simulation(&angle_fixed, &sin_c, &cos_c);
+            postprocess_quarters(&cos_c, &sin_c, &cos_res, &sin_res, flips);
+            printf("Sine: %f\r\nCosine: %f\r\n", sin_res, cos_res);
             break;
         // case 't':
         //     sin_diff_square_sum = 0;
