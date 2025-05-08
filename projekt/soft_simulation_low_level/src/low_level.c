@@ -3,7 +3,7 @@
 #include "./common.h"
 
 void low_level_simulation(fixed_t* theta, fixed_t* sin_c, fixed_t* cos_c, int8_t debug){
-    if (debug) printf("=== CORDIC ALGORYTHM ===\n");
+    if (debug) printf("\n=== CORDIC ALGORYTHM ===\n");
     *sin_c = 0;
     *cos_c = SCALING_FACTOR;
     fixed_t cos_c_next = 0, phi = 0;

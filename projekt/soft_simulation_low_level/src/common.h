@@ -2,6 +2,8 @@
 #define COMMON_H
 
 #include <stdint.h>  // For fixed-width integer types
+#include <stdio.h>
+
 
 // Set number of iterations here
 #define WIDTH 32
@@ -27,10 +29,12 @@
 
 void low_level_simulation(fixed_t* theta, fixed_t* sin, fixed_t* cos, int8_t debug);
 
-void preprocess_angle(float* angle_float, fixed_t* angle_fixed, int8_t* flips, int8_t debug);
+void preprocess_angle(float* angle_float, int32_t* angle_int, int32_t* angle_frac, fixed_t* angle_fixed, int8_t* flips, int8_t debug);
 
-void postprocess_quarters(fixed_t* cos_reg, fixed_t* sin_reg, float* cos_res, float* sin_res, int8_t flips, int8_t debug);
+void postprocess_quarters(fixed_t* sin_c, fixed_t* cos_c, int8_t* flips, float* sin_float, float* cos_float, int8_t debug);
 
-void print_binary(int64_t value, int bits);
+void print_binary(FILE *out, int64_t value, int bits);
+
+void print_binary_float(FILE *out, float value, int bits);
 
 #endif
