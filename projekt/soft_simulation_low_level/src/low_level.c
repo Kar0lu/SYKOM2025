@@ -2,12 +2,11 @@
 #include <stdint.h>
 #include "./common.h"
 
-
-void low_level_simulation(fixed_t* theta, fixed_t* sin, fixed_t* cos){
-    printf("=== CORDIC ALGORYTHM ===\n");
-    *sin = 0;
-    *cos = SCALING_FACTOR;
-    fixed_t cos_next = 0, phi = 0;
+void low_level_simulation(fixed_t* theta, fixed_t* sin_c, fixed_t* cos_c, int8_t debug){
+    if (debug) printf("=== CORDIC ALGORYTHM ===\n");
+    *sin_c = 0;
+    *cos_c = SCALING_FACTOR;
+    fixed_t cos_c_next = 0, phi = 0;
     int i;
 
     // // Representation: <angle_deg> * 2^16 / 180
@@ -66,12 +65,12 @@ void low_level_simulation(fixed_t* theta, fixed_t* sin, fixed_t* cos){
     
     // Edge cases
     if(*theta == 0x40000000) {
-        *sin = 0x5A820000; 
-        *cos = 0x5A820000;
+        *sin_c = 0x5A820000; 
+        *cos_c = 0x5A820000;
         return;
     } else if(*theta == 0){
-        *sin = 0; 
-        *cos = 0x80000000;
+        *sin_c = 0; 
+        *cos_c = 0x80000000;
         return;
     }
 
@@ -79,14 +78,14 @@ void low_level_simulation(fixed_t* theta, fixed_t* sin, fixed_t* cos){
     for(i = 0; i < WIDTH; i++){
         
         if(phi < *theta){
-            cos_next = *cos - (*sin >> i);
-            *sin += (*cos >> i); 
-            *cos = cos_next;
+            cos_c_next = *cos_c - (*sin_c >> i);
+            *sin_c += (*cos_c >> i); 
+            *cos_c = cos_c_next;
             phi += atantable[i];
         } else if (phi > *theta){
-            cos_next = *cos + (*sin >> i);
-            *sin -= (*cos >> i); 
-            *cos = cos_next;
+            cos_c_next = *cos_c + (*sin_c >> i);
+            *sin_c -= (*cos_c >> i); 
+            *cos_c = cos_c_next;
             phi -= atantable[i];
         }
         

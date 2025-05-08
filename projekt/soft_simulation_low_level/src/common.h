@@ -25,10 +25,12 @@
                     "s <angle>:              calculate sine and cosine values for angle given in degrees\r\n" \
                     "i <start> <end> <step>: calculate input data compatible with testbench"
 
-void low_level_simulation(fixed_t* theta, fixed_t* sin, fixed_t* cos);
+void low_level_simulation(fixed_t* theta, fixed_t* sin, fixed_t* cos, int8_t debug);
 
-void preprocess_angle(float* angle_float, fixed_t* angle_fixed, int8_t* flips);
+void preprocess_angle(float* angle_float, fixed_t* angle_fixed, int8_t* flips, int8_t debug);
 
-void postprocess_quarters(fixed_t* cos_reg, fixed_t* sin_reg, float* cos_res, float* sin_res, int8_t flips);
+void postprocess_quarters(fixed_t* cos_reg, fixed_t* sin_reg, float* cos_res, float* sin_res, int8_t flips, int8_t debug);
+
+void print_binary(int64_t value, int bits);
 
 #endif

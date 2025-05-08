@@ -3,14 +3,8 @@
 #include <stdio.h>
 #include <math.h>
 
-void print_binary(int64_t value, int bits) {
-    for (int i = bits - 1; i >= 0; i--) {
-        printf("%u", (value >> i) & 1);
-    }
-}
-
-void preprocess_angle(float* angle_float, fixed_t* angle_fixed, int8_t* flips) {
-    printf("=== ANGLE PREPROCESSING ===\n");
+void preprocess_angle(float* angle_float, fixed_t* angle_fixed, int8_t* flips, int8_t debug) {
+    if (debug) printf("=== ANGLE PREPROCESSING ===\n");
     union {
         float f;
         uint32_t u;
@@ -32,9 +26,9 @@ void preprocess_angle(float* angle_float, fixed_t* angle_fixed, int8_t* flips) {
     int32_t exp = ((int32_t)exponent_raw) - 127;
 
 
-    printf("sign:\t\t\t"); print_binary(sign, 1); printf("\n");
-    printf("exp:\t\t\t%d\n", exp);
-    printf("mantissa:\t\t"); print_binary(mantissa, 24); printf("\n\n");
+    if (debug) { printf("sign:\t\t\t"); print_binary(sign, 1); printf("\n"); }
+    if (debug) { printf("exp:\t\t\t%d\n", exp); }
+    if (debug) { printf("mantissa:\t\t"); print_binary(mantissa, 24); printf("\n\n"); }
 
     int32_t angle_int, angle_frac;
     if (exp >= 23) {
@@ -74,10 +68,10 @@ void preprocess_angle(float* angle_float, fixed_t* angle_fixed, int8_t* flips) {
 
     float angle_frac_float = (float)angle_frac / (1LL << 31);
 
-    printf("angle_float:\t\t%f\n", *angle_float);
-    printf("angle_int:\t\t%d\t", angle_int); print_binary(angle_int, 32); printf("\n\n");
-    printf("angle_frac_float:\t%f\n", angle_frac_float);
-    printf("angle_frac_q31:\t\t0x%08X\t", angle_frac); print_binary(angle_frac, 32); printf("\n\n");
+    if (debug) printf("angle_float:\t\t%f\n", *angle_float);
+    if (debug) { printf("angle_int:\t\t%d\t", angle_int); print_binary(angle_int, 32); printf("\n\n"); }
+    if (debug) printf("angle_frac_float:\t%f\n", angle_frac_float);
+    if (debug) { printf("angle_frac_q31:\t\t0x%08X\t", angle_frac); print_binary(angle_frac, 32); printf("\n\n"); }
 
     
     // Make theta [-180;180]
@@ -98,16 +92,16 @@ void preprocess_angle(float* angle_float, fixed_t* angle_fixed, int8_t* flips) {
 
     // Convert angle in degrees to fixed-point representation (scaling factor 2^32)
     int64_t angle_combined = ((int64_t)angle_int << 32) + ((int64_t)angle_frac << 1); // No shift here, combine the integer and fractional parts directly.
-    printf("angle_combined:\t\t"); print_binary(angle_combined, 64); printf("\n");
+    if (debug) { printf("angle_combined:\t\t"); print_binary(angle_combined, 64); printf("\n"); }
 
     // Scaling factor for fixed-point conversion (1 << 32) 
     int64_t scale = (1ULL << 32) / 180; // scale factor for conversion
     *angle_fixed = (angle_combined * scale) >> 32; // convert to fixed-point
-    printf("angle_fixed:\t\t"); print_binary(*angle_fixed, 32); printf("\n");
+    if (debug) { printf("angle_fixed:\t\t"); print_binary(*angle_fixed, 32); printf("\n"); }
 
     // Convert back to floating-point for validation
     float angle_fixed_float = (float)(*angle_fixed) * (180.0 / (1ULL << 32));
-    printf("angle_fixed_float:\t%f\n", angle_fixed_float);
-    printf("flips: %d\n\n", *flips);
+    if (debug) printf("angle_fixed_float:\t%f\n", angle_fixed_float);
+    if (debug) printf("flips: %d\n\n", *flips);
     return;
 }
