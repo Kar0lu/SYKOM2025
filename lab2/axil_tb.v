@@ -85,6 +85,9 @@ module axil_tb;
             @(posedge clk);
             AWVALID <= 0;
             WVALID  <= 0;
+            WDATA   <= 0;
+            WSTRB   <= 0;
+            AWADDR  <= 0;
 
             wait(BVALID);
             @(posedge clk);
@@ -124,18 +127,18 @@ module axil_tb;
         # 5 n_reset = 1'b1;
 
         // Writing
-        axi_write(4'h0, 32'h1234CAFE, 4'b0011);
-        axi_write(4'h4, 32'hFACEB00C, 4'b1111);
+        axi_write(4'h0, 32'h1234CAFE, 4'b1111);
+        axi_write(4'h4, 32'hFACEB00C, 4'b1100);
 
 
         // Test read
         axi_read(4'h0, read_data);
         $display("Read from 0x0: %08X", read_data);
-        if (read_data !== 32'h0000CAFE) $fatal(1, "Read-back mismatch");
+        if (read_data !== 32'h1234CAFE) $fatal(1, "Read-back mismatch");
 
         axi_read(4'h4, read_data);
         $display("Read from 0x4: %08X", read_data);
-        if (read_data !== 32'hFACEB00C) $fatal(1, "Read-back mismatch");
+        if (read_data !== 32'hFACE0000) $fatal(1, "Read-back mismatch");
 
         $display("Test PASSED");
         $finish;
