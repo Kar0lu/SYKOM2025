@@ -35,6 +35,9 @@ int main(int argc, char* argv[]) {
     fixed_t angle_fixed, cos_c, sin_c;
     int8_t flips;
 
+    float start, end, step;
+    char *endptr1, *endptr2, *endptr3;
+
     float sin_square_sum, sin_diff_square_sum, sin_lib_float, 
           cos_square_sum, cos_diff_square_sum, cos_lib_float;
     double sin_lib_double, cos_lib_double;
@@ -72,7 +75,25 @@ int main(int argc, char* argv[]) {
                         printf("Failed to open file for writing.\r\n");
                         return 1;
                     } else {
-                        mode = argv[1][0];
+                        if (argc == 5) {
+                            start = (float)strtod(argv[2], &endptr1);
+                            end = (float)strtod(argv[3], &endptr2);
+                            step = (float)strtod(argv[4], &endptr3);
+                            if (*endptr1 != '\0') {
+                                printf("Invalid start.\r\n");
+                                return EXIT_FAILURE;
+                            } else if (*endptr2 != '\0') {
+                                printf("Invalid end.\r\n");
+                                return EXIT_FAILURE;
+                            } else if (*endptr3 != '\0') {
+                                printf("Invalid step.\r\n");
+                                return EXIT_FAILURE;
+                            } else {
+                                mode = argv[1][0];
+                            }
+                        } else {
+                            printf("Not enough arguments.\r\n" WRONG_USAGE);
+                        }
                     }
                     break;
             }
@@ -145,17 +166,17 @@ int main(int argc, char* argv[]) {
             fprintf(file, "%6s %32s %32s %32s %6s %32s %32s %32s %32s %12s %12s \r\n", "angle", "angle_int", "angle_frac_q31", "angle_fixed", "flips", "sin_c", "cos_c", "sin_c_float", "cos_c_float", "sin_lib_float", "cos_lib_float");
 
             // Calculating angles from -180 to 179
-            for(float i = -180.0; i < 180.0; i += 0.1){
-                angle_float = i;
+            for(; start < end+step; start = start + step){
+                angle_float = start;
                 preprocess_angle(&angle_float, &angle_int, &angle_frac, &angle_fixed, &flips, 0);
                 low_level_simulation(&angle_fixed, &sin_c, &cos_c, 0);
                 postprocess_quarters(&sin_c, &cos_c, &flips, &sin_float, &cos_float, 0);
 
-                sin_lib_float = sinf(i * M_PI / 180);
-                cos_lib_float = cosf(i * M_PI / 180);
+                sin_lib_float = sinf(start * M_PI / 180);
+                cos_lib_float = cosf(start * M_PI / 180);
 
 
-                fprintf(file, "%6.2f ", i);
+                fprintf(file, "%6.2f ", start);
                 print_binary(file, angle_int, 32); fprintf(file, " ");
                 print_binary(file, angle_frac, 32); fprintf(file, " ");
                 print_binary(file, angle_fixed, 32); fprintf(file, " ");

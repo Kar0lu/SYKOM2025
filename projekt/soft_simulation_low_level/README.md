@@ -5,3 +5,6 @@ Execute `main s <angle in degrees>`, if one wish to calculate values for 0 degre
 
 ## Testbench
 Execute `main t`.
+
+## Input data
+Execute `main i <start> <end> <step>`.
