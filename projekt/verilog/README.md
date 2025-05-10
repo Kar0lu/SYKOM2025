@@ -1,9 +1,14 @@
-# Notes before commit
-- I'm going insane
-- python file is made to generate input_degrees.txt
-- commands to build and simulate project:
-    - iverilog -o .\build\cordic_top_sim .\modules\angle_normalizer.v .\modules\cordic.v .\modules\cordic_top.v .\modules\result_converter.v .\testbench\cordic_top_tb.v
-    - vvp .\build\angle_normalizer_sim 
+# Usefull commands
+    - iverilog -o .\build\cordic_top_sim .\modules\angle_normalizer.v .\modules\cordic.v .\modules\result_converter.v .\modules\cordic_top.v .\testbench\cordic_top_tb.v
+    - vvp .\build\cordic_top_sim
     - gtkwave .\vcd\cordic_top_tb.vcd
-- current problem is that control system didn't predict that continous "start" state is not a good idea and communication between components has to be fixed
-- cordic module doesn't know when to stop iterations, ebcause it's always ready
+
+# TODO
+- make sure "done" signal from result_converter actually resets angle_normalizer and cordic
+- make testbench check if sytem behave as mentioned in messenger conv
+
+- implement conversion to ieee754 in result_converter
+- adjust testbench to work with data taken from low_level C simulation
+
+- extend model to work with 32bit and 64bit values
+- make gtkwave saved views

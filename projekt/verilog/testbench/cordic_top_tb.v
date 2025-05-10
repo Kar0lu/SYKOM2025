@@ -26,7 +26,7 @@ module cordic_top_tb;
         .angle_ieee754(angle_ieee754),
         .cos_ieee754(cos_ieee754),
         .sin_ieee754(sin_ieee754),
-        .valid(done),
+        .done(done),
         .flip_out(flip_out)
     );
 
@@ -78,7 +78,7 @@ module cordic_top_tb;
             valid_in = 1;
             #10;
             valid_in = 0;
-            wait (valid);
+            wait (done);
             #5;
 
             sin_out_real = sin_ieee754/32768.0;
