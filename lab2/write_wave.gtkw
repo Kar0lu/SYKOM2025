@@ -1,23 +1,22 @@
 [*]
 [*] GTKWave Analyzer v3.3.118 (w)1999-2023 BSI
-[*] Tue May  6 16:17:18 2025
+[*] Fri May  9 12:36:40 2025
 [*]
 [dumpfile] "/home/kacper/Dokumenty/SYKOM2025/lab2/axil_tb.vcd"
-[dumpfile_mtime] "Tue May  6 16:15:54 2025"
-[dumpfile_size] 5908
+[dumpfile_mtime] "Fri May  9 12:21:49 2025"
+[dumpfile_size] 4361
 [savefile] "/home/kacper/Dokumenty/SYKOM2025/lab2/write_wave.gtkw"
-[timestart] 0
-[size] 2560 1361
-[pos] -51 -51
-*-4.535332 11 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[timestart] 4
+[size] 1920 1033
+[pos] -1 -1
+*-2.135332 7 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] axil_tb.
 [sst_width] 273
-[signals_width] 204
+[signals_width] 228
 [sst_expanded] 1
-[sst_vpaned_height] 421
+[sst_vpaned_height] 398
 @28
 axil_tb.AXI_LITE.S_AXI_ACLK
-@29
 axil_tb.AXI_LITE.S_AXI_ARESETN
 @22
 axil_tb.AXI_LITE.S_AXI_AWADDR[3:0]
