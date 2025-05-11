@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
 
             break;
         case 'i':
-            fprintf(file, "%6s %32s %32s %32s %6s %32s %32s %32s %32s %12s %12s \r\n", "angle", "angle_int", "angle_frac_q31", "angle_fixed", "flips", "sin_c", "cos_c", "sin_c_float", "cos_c_float", "sin_lib_float", "cos_lib_float");
+            fprintf(file, "%s %s %s %s %s %s %s %s %s %s %s \r\n", "angle", "angle_int", "angle_frac", "angle_fixed", "flips", "sin_c", "cos_c", "sin_c_float", "cos_c_float", "sin_lib_float", "cos_lib_float");
 
             // Calculating angles from -180 to 179
             for(; start < end+step; start = start + step){
@@ -175,16 +175,22 @@ int main(int argc, char* argv[]) {
                 sin_lib_float = sinf(start * M_PI / 180);
                 cos_lib_float = cosf(start * M_PI / 180);
 
-
-                fprintf(file, "%6.2f ", start);
-                print_binary(file, angle_int, 32); fprintf(file, " ");
-                print_binary(file, angle_frac, 32); fprintf(file, " ");
-                print_binary(file, angle_fixed, 32); fprintf(file, " ");
-                fprintf(file, "%5d ", flips);
-                print_binary(file, sin_c, 32); fprintf(file, " ");
-                print_binary(file, cos_c, 32); fprintf(file, " ");
-                print_binary_float(file, (float)sin_c / (1LL << 31), 32); fprintf(file, " ");
-                print_binary_float(file, (float)cos_c / (1LL << 31), 32); fprintf(file, " ");
+                fprintf(file, "%12.8f ", start);
+                // print_binary(file, angle_int, 32); fprintf(file, " ");
+                // print_binary(file, angle_frac, 32); fprintf(file, " ");
+                // print_binary(file, angle_fixed, 32); fprintf(file, " ");
+                fprintf(file, "%8x ", angle_int);
+                fprintf(file, "%8x ", angle_frac);
+                fprintf(file, "%8x ", angle_fixed);
+                fprintf(file, "%2d ", flips);
+                // print_binary(file, sin_c, 32); fprintf(file, " ");
+                // print_binary(file, cos_c, 32); fprintf(file, " ");
+                // print_binary_float(file, (float)sin_c / (1LL << 31), 32); fprintf(file, " ");
+                // print_binary_float(file, (float)cos_c / (1LL << 31), 32); fprintf(file, " ");
+                fprintf(file, "%8x ", sin_c);
+                fprintf(file, "%8x ", cos_c);
+                fprintf(file, "%12.8f ", sin_float);
+                fprintf(file, "%12.8f ", cos_float);
                 fprintf(file, "%12.8f %12.8f\n", sin_lib_float, cos_lib_float);
                 // i, angle_int, angle_frac, angle_fixed, flips,
                 // sin_c, cos_c,
