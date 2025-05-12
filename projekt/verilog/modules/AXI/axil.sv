@@ -1,6 +1,6 @@
 module axil #(
     parameter ADDR_WIDTH = 4,    // 4 registers: 0x00, 0x04, 0x08, 0xC
-    parameter CLK_DIV_LEN = 4
+    parameter CLK_DIV = 4
 )(
     // Global signals
     input wire S_AXI_ACLK,
@@ -37,6 +37,7 @@ module axil #(
 );
 
     // Localparam for clock divider
+    localparam CLK_DIV_LEN = $clog2(CLK_DIV);
     localparam CLK_DIV_RST_VAL = (1 << CLK_DIV_LEN) - 1;
 
     // Inner wires and registers
@@ -60,6 +61,7 @@ module axil #(
     // Strobe wires
     wire [31:0] ctrl_strb, in_angle_strb;
   
+
     // Write logic
 	always @(posedge S_AXI_ACLK)
 	if (!S_AXI_ARESETN)
@@ -175,8 +177,11 @@ module axil #(
     begin
         clk_div_counter <= CLK_DIV_RST_VAL;
         cordic_clk <= 0;
-    end else if(clk_div_counter == CLK_DIV_RST_VAL)
+    end else if(clk_div_counter == CLK_DIV - 1)
+    begin
         cordic_clk <= !cordic_clk;
+        clk_div_counter <= 0;
+    end
     else
         clk_div_counter <= clk_div_counter + 1;
     
@@ -193,38 +198,80 @@ module axil #(
     .done(cordic_done)
     );
 
-    // Statuses ctrl_reg bit 16 - done, ctrl_reg bit 17 - busy
-
-    // Reset and start generation
-    initial cordic_rst = 0;
-    initial cordic_valid_in <= 0;
+    // Statuses: ctrl_reg[16] - done, ctrl_reg[17] - busy
+    // Master requests: ctrl_reg[0] - start
     
+    // Clock Domain Crossing (S_AXI_ACLK -> cordic_clk)
+    reg [1:0] ctrl_reg0_sync;
+    reg ctrl_reg0_prev;
+    wire cordic_start_pulse;
     always @(posedge cordic_clk)
     begin
-        // Reseting cordic module when start is written to bit 0 of ctrl_reg (start)
-        cordic_rst <= ctrl_reg[0];
-        cordic_valid_in <= cordic_rst;
-        ctrl_reg[0] <= 0;
+        ctrl_reg0_sync <= {ctrl_reg0_sync[0], ctrl_reg[0]};
+        ctrl_reg0_prev <= ctrl_reg0_sync[1];
     end
 
-    // Reset and start taking down
-    always @(posedge cordic_clk)
-    if(cordic_rst)
-        cordic_rst <= 0;
- 
-    // Rewriting results to inner reg if they are valid
+    assign cordic_start_pulse = !ctrl_reg0_prev && ctrl_reg0_sync[1];
+
+    // Clock Domain Crossing (cordic_clk -> S_AXI_ACLK)
+    reg [1:0] cordic_done_sync, start_ack;
+    reg cordic_done_prev;
+    wire cordic_done_pulse;
     always @(posedge S_AXI_ACLK)
-    if(cordic_rst)
-        // Bit 17 of ctrl reg is busy
-        ctrl_reg[17] <= 1;
-    else if(cordic_done)
     begin
-        out_cos_reg [15:0] <= cos_res;
-        out_sin_reg [15:0] <= sin_res;
-        // ctrl_reg[16] is done
-        ctrl_reg[17:16] <= 2'b01;
-        // Leaving flip_out alone for now (maybe will have another register or will be assigned to some bits of ctrl_reg)
+        cordic_done_sync <= {cordic_done_sync[0], cordic_done};
+        cordic_done_prev <= cordic_done_sync[1];
+        start_ack <= {start_ack[0], cordic_valid_in};
     end
+
+    assign cordic_done_pulse = !cordic_done_prev && cordic_done_sync[1];
+
+
+    // Reset and valid in generation
+    initial cordic_rst = 0;
+    initial cordic_valid_in = 0;
+    always @(posedge cordic_clk)
+    begin
+        cordic_valid_in <= cordic_rst;
+        if(cordic_rst)
+            cordic_rst <= 0;
+        else
+            // Reset cordic on negedge of start
+            cordic_rst <= cordic_start_pulse;
+    end
+
+    // Statuses
+    always @(posedge S_AXI_ACLK) begin
+        if(!S_AXI_ARESETN) begin
+            ctrl_reg[17:16] <= 2'b00;
+            out_cos_reg <= 0;
+            out_sin_reg <= 0;
+        end else begin
+            // State machine
+            case(ctrl_reg[17:16])
+                2'b00: // Idle
+                    if(ctrl_reg[0]) begin
+                        ctrl_reg[17:16] <= 2'b10; // busy
+                    end
+                
+                2'b10: // Busy
+                    if(cordic_done_pulse) begin
+                        out_cos_reg[15:0] <= cos_res;
+                        out_sin_reg[15:0] <= sin_res;
+                        ctrl_reg[17:16] <= 2'b01; // done
+                    end
+                
+                2'b01: // Done
+                    if(ctrl_reg[0])
+                        ctrl_reg[17:16] <= 2'b10; // busy
+            endcase
+            
+            // Clear start bit after ack from cordic
+            if(start_ack)
+                ctrl_reg[0] <= 1'b0;
+        end
+    end
+
 
 
 endmodule

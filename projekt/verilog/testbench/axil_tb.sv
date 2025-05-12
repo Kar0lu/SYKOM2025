@@ -3,7 +3,7 @@
 module axil_tb;
 
     parameter ADDR_WIDTH = 4;
-    parameter CORDIC_CLK_DIV = 1;
+    parameter CORDIC_CLK_DIV = 10;
 
     reg clk;
     reg n_reset;
@@ -45,7 +45,7 @@ module axil_tb;
 
     axil #(
         .ADDR_WIDTH(ADDR_WIDTH),
-        .CLK_DIV_LEN(CORDIC_CLK_DIV)
+        .CLK_DIV(CORDIC_CLK_DIV)
     ) AXI_LITE (
         // Global signals
         .S_AXI_ACLK(clk),
@@ -212,7 +212,7 @@ module axil_tb;
         # 0 n_reset = 1'b0;
         # 5 n_reset = 1'b1;
 
-        test_with_files();
+        # 10 test_with_files();
 
         $display("Test FINISHED");
         $finish;
