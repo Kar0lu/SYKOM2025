@@ -3,6 +3,16 @@
     - vvp .\build\cordic_top_sim
     - gtkwave .\vcd\cordic_top_tb.vcd
 
+## Same as above but for sane people
+- `iverilog -o ./build/cordic_top_sim ./modules/angle_normalizer.v ./modules/cordic.v ./modules/result_converter.v ./modules/cordic_top.v ./testbench/cordic_top_tb.v`
+- `vvp ./build/cordic_top_sim`
+- `gtkwave ./vcd/cordic_top_tb.vcd`
+
+# Running simple AXI testbench
+- `iverilog -g2005-sv -o ./build/axi_cordic_sim ./modules/AXI/axil.sv ./modules/angle_normalizer.v ./modules/cordic.v ./modules/result_converter.v ./modules/cordic_top.v ./testbench/axil_tb.sv`
+- `vvp ./build/axi_cordic_sim`
+- `gtkwave ./vcd/axil_tb.vcd`
+
 # TODO
 - make sure "done" signal from result_converter actually resets angle_normalizer and cordic
 - make testbench check if sytem behave as mentioned in messenger conv
