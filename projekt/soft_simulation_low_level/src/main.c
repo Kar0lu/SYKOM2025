@@ -43,6 +43,11 @@ int main(int argc, char* argv[]) {
     double sin_lib_double, cos_lib_double;
     FILE *file;
 
+    union {
+        float f;
+        uint32_t u;
+    } fconv;
+
     if (argc > 1) {
         if (strlen(argv[1]) == 1) {
             switch(argv[1][0]) {
@@ -163,7 +168,7 @@ int main(int argc, char* argv[]) {
 
             break;
         case 'i':
-            fprintf(file, "%s %s %s %s %s %s %s %s %s %s %s \r\n", "angle", "angle_int", "angle_frac", "angle_fixed", "flips", "sin_c", "cos_c", "sin_c_float", "cos_c_float", "sin_lib_float", "cos_lib_float");
+            fprintf(file, "%s %s %s %s %s %s %s %s %s %s %s %s \r\n", "angle", "angle_hex", "angle_int", "angle_frac", "angle_fixed", "flips", "sin_c", "cos_c", "sin_c_float", "cos_c_float", "sin_lib_float", "cos_lib_float");
 
             // Calculating angles from -180 to 179
             for(; start < end+step; start = start + step){
@@ -176,6 +181,8 @@ int main(int argc, char* argv[]) {
                 cos_lib_float = cosf(start * M_PI / 180);
 
                 fprintf(file, "%12.8f ", start);
+                fconv.f = start;
+                fprintf(file, "%x ", fconv.u);
                 // print_binary(file, angle_int, 32); fprintf(file, " ");
                 // print_binary(file, angle_frac, 32); fprintf(file, " ");
                 // print_binary(file, angle_fixed, 32); fprintf(file, " ");
