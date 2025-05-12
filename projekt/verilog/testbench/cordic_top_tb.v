@@ -1,33 +1,50 @@
 `timescale 1ns / 1ps
 
 module cordic_top_tb;
-    integer infile, outfile, r;
-    integer angle_deg;
-    real    sin_pre, cos_pre,
-            sin_out_real, cos_out_real,
-            sin_err, cos_err,
-            sin_err_acc, cos_err_acc;
 
+    parameter WIDTH = 32;
+    
+    // simulation variables
+    real sim_sin_lib, sim_cos_lib,
+         sim_sin_float, sim_cos_float,
+         sim_angle_real;
+    reg [31:0] sim_angle_int, sim_angle_frac;
+    reg [WIDTH-1: 0] sim_angle_fixed, sim_sin_fixed, sim_cos_fixed;
+    integer sim_flips;
+
+    // circuit variables
     reg clk, rst, valid_in;
-    reg [31:0] angle_ieee754;
-    
-    wire signed [15:0] cos_ieee754, sin_ieee754;
+    reg [31:0] sim_angle_float;
+    wire [31:0] sin_float, cos_float;
     wire done;
-    wire signed [2:0] flip_out;
 
-    
-    
-    reg [15:0] sin_ieee754_in, cos_ieee754_in;  // Optional, if you want to compare fixed-point too
-    
+    // circuit variables (for test)
+    wire signed [31:0] angle_int, angle_frac;
+    wire signed [WIDTH-1:0] angle_fixed;
+    wire signed [2:0] flips;
+    wire signed [WIDTH-1:0] sin_fixed, cos_fixed;
+
+    // testbench variables
+    integer in_file, result_file, test_file, r;
+    real sin_err, cos_err,
+         sin_err_acc, cos_err_acc;
+        
     cordic_top dut(
         .clk(clk),
         .rst(rst),
         .valid_in(valid_in),
-        .angle_ieee754(angle_ieee754),
-        .cos_ieee754(cos_ieee754),
-        .sin_ieee754(sin_ieee754),
+        .angle_float(sim_angle_float),
+        .cos_float(cos_float),
+        .sin_float(sin_float),
         .done(done),
-        .flip_out(flip_out)
+        
+        // testing
+        .flips(flips),
+        .angle_int(angle_int),
+        .angle_frac(angle_frac),
+        .angle_fixed(angle_fixed),
+        .sin_fixed(sin_fixed),
+        .cos_fixed(cos_fixed)
     );
 
     always begin
@@ -35,16 +52,22 @@ module cordic_top_tb;
     end
 
     initial begin
-        infile = $fopen("./utils/input_data.txt", "r");
-        outfile = $fopen("./utils/results.txt", "w");
+        in_file = $fopen("./utils/input_data.txt", "r");
+        result_file = $fopen("./utils/cordic_results.txt", "w");
+        test_file = $fopen("./utils/test.txt", "w");
 
-        if (infile == 0) begin
-            $display("Error opening infile.");
+        if (in_file == 0) begin
+            $display("Error opening in_file.");
             $finish;
         end
 
-        if (outfile == 0) begin
-            $display("Error opening outfile.");
+        if (result_file == 0) begin
+            $display("Error opening result_file.");
+            $finish;
+        end
+
+        if (test_file == 0) begin
+            $display("Error opening test_file.");
             $finish;
         end
 
@@ -55,24 +78,31 @@ module cordic_top_tb;
         $dumpfile("./vcd/cordic_top_tb.vcd");
         $dumpvars(0, cordic_top_tb);
 
-        $fwrite(outfile,"%9s %15s %15s %15s %15s %15s %15s %15s %15s %15s %15s\n",
-                "angle_deg", "ieee754_hex",  
-                "sin_pre", "sin_out", "sin_out_real", "sin_err", 
-                "cos_pre", "cos_out", "cos_out_real", "cos_err",
-                "flip_out"
-                
+        // result_file header
+        $fwrite(result_file, "%11s %11s %11s %11s %5s %11s %11s %11s %11s %11s %11s\n",
+                "angle_float", "angle_int", "angle_frac", "angle_fixed", "flips",  
+                "sin_fixed", "cos_fixed", "sin_float", "cos_float",
+                "sim_sin_lib", "sim_cos_lib"
         );
-        while (!$feof(infile)) begin
+
+        $fwrite(test_file, "%11s %11s %11s %11s %11s %11s %11s %11s %11s %11s %11s\n",
+                "angle_real", "angle_int", "angle_frac", "angle_fixed", "flips",  
+                "sin_fixed", "cos_fixed", "sin_float", "cos_float", "sin_res", "cos_res"
+        );
+        while (!$feof(in_file)) begin
             rst = 1;
             #10;
             rst = 0;
             #10;
 
-            // Read angle (degrees), IEEE754 hex, sin_ieee754, cos_ieee754, real sin, real cos
-            r = $fscanf(infile, "%d\t%h\t%h\t%h\t%f\t%f\n",
-                        angle_deg, angle_ieee754, cos_ieee754_in, sin_ieee754_in,
-                        sin_pre, cos_pre);
-            $display("\nTESTING ANGLE\t\t%d", angle_deg);
+            r = $fscanf(in_file, "%f %x %x %x %x %d %x %x %f %f %f %f",
+                        sim_angle_real, sim_angle_float,
+                        sim_angle_int, sim_angle_frac, sim_angle_fixed, sim_flips,
+                        sim_sin_fixed, sim_cos_fixed,
+                        sim_sin_float, sim_cos_float,
+                        sim_sin_lib, sim_cos_lib
+            );
+            $display("\nTESTING ANGLE\t\t%f", sim_angle_real);
 
             #10;
             valid_in = 1;
@@ -81,26 +111,43 @@ module cordic_top_tb;
             wait (done);
             #5;
 
-            sin_out_real = sin_ieee754/32768.0;
-            cos_out_real = cos_ieee754/32768.0;
-            sin_err = sin_out_real - sin_pre;
-            cos_err = cos_out_real - cos_pre;
-            sin_err_acc = sin_err_acc + sin_err * sin_err;
-            cos_err_acc = cos_err_acc + cos_err * cos_err;
+            // sin_err = sin_float - sim_sin_lib;
+            // cos_err = cos_float - sim_cos_lib;
+            // sin_err_acc = sin_err_acc + sin_err * sin_err;
+            // cos_err_acc = cos_err_acc + cos_err * cos_err;
 
-            // Print results: input angle, output Q15 values, precomputed floats
-            $fwrite(outfile, "%9d %15h %15.6f %15h %15.6f %15.6f %15.6f %15h %15.6f %15.6f %15d\n",
-                    angle_deg, angle_ieee754,   
-                    sin_pre, sin_ieee754, sin_out_real, sin_err, 
-                    cos_pre, cos_ieee754, cos_out_real, cos_err,
-                    flip_out
+            // "angle_float", "angle_int", "angle_frac", "angle_fixed", "flips",  
+            // "sin_fixed", "cos_fixed", "sin_float", "cos_float",
+            // "sim_sin_lib", "sim_cos_lib"
+            $fwrite(result_file, "%11f %11x %11x %11x %5d %11x %11x %11x %11x %11f %11f\n", // two last hex should be floats
+                    sim_angle_real,
+                    angle_int, angle_frac, angle_fixed, flips,
+                    sin_fixed, cos_fixed,
+                    sin_float, cos_float,
+                    sim_sin_lib, sim_cos_lib
+            );
+
+            // "angle_real", "angle_int", "angle_frac", "angle_fixed", "flips",  
+            // "sin_fixed", "cos_fixed", "sin_float", "cos_float, sin_res, cos_res"
+            $fwrite(test_file, "%11f %11s %11s %11s %11s %11s %11s %11s %11s %11s %11s\n",
+                sim_angle_real,
+                (angle_int - sim_angle_int) < 0.1 ? "passed" : "failed",
+                (angle_frac - sim_angle_frac) < 0.1 ? "passed" : "failed",
+                (angle_fixed - sim_angle_fixed) < 0.1 ? "passed" : "failed",
+                (flips - sim_flips) < 0.1 ? "passed" : "failed",
+                (sin_fixed - sim_sin_fixed) < 0.1 ? "passed" : "failed",
+                (cos_fixed - sim_cos_fixed) < 0.1 ? "passed" : "failed",
+                (sin_float - sim_sin_float) < 0.1 ? "passed" : "failed",
+                (cos_float - sim_cos_float) < 0.1 ? "passed" : "failed",
+                (sin_float - sim_sin_lib) < 0.1 ? "passed" : "failed",
+                (cos_float - sim_cos_lib) < 0.1 ? "passed" : "failed"
             );
         end
 
-        $fwrite(outfile, "Accumulated relative sin error: %f\n", sin_err_acc/360);
-        $fwrite(outfile, "Accumulated relative cos error: %f", cos_err_acc/360);
-        $fclose(infile);
-        $fclose(outfile);
+        // $fwrite(result_file, "Accumulated relative sin error: %f\n", sin_err_acc/360);
+        // $fwrite(result_file, "Accumulated relative cos error: %f", cos_err_acc/360);
+        $fclose(in_file);
+        $fclose(result_file);
         $finish;
     end
 endmodule

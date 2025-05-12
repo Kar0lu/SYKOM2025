@@ -2,14 +2,14 @@
 #include <stdint.h>
 #include "./common.h"
 
-void low_level_simulation(fixed_t* theta, fixed_t* sin_c, fixed_t* cos_c, int8_t debug){
+void low_level_simulation(fixed_t* theta, fixed_t* sin_fixed, fixed_t* cos_fixed, int8_t debug){
     if (debug) printf("\n=== CORDIC ALGORYTHM ===\n");
-    *sin_c = 0;
-    *cos_c = SCALING_FACTOR;
-    fixed_t cos_c_next = 0, phi = 0;
+    *sin_fixed = 0;
+    *cos_fixed = SCALING_FACTOR;
+    fixed_t cos_fixed_next = 0, phi = 0;
     int i;
 
-    // // Representation: <angle_deg> * 2^16 / 180
+    // // representation: <angle_deg> * 2^16 / 180
     // static fixed_t atantable[WIDTH] = {  
     //     0x4000,   //atan(2^0) = 45 degrees
     //     0x25C8,   //atan(2^-1) = 26.5651
@@ -63,29 +63,29 @@ void low_level_simulation(fixed_t* theta, fixed_t* sin_c, fixed_t* cos_c, int8_t
         0x00000001,
     };
     
-    // Edge cases
+    // edge cases
     if(*theta == 0x40000000) {
-        *sin_c = 0x5A820000; 
-        *cos_c = 0x5A820000;
+        *sin_fixed = 0x5A820000; 
+        *cos_fixed = 0x5A820000;
         return;
     } else if(*theta == 0){
-        *sin_c = 0; 
-        *cos_c = 0x80000000;
+        *sin_fixed = 0; 
+        *cos_fixed = 0x80000000;
         return;
     }
 
-    // Standard cases
+    // standard cases
     for(i = 0; i < WIDTH; i++){
         
         if(phi < *theta){
-            cos_c_next = *cos_c - (*sin_c >> i);
-            *sin_c += (*cos_c >> i); 
-            *cos_c = cos_c_next;
+            cos_fixed_next = *cos_fixed - (*sin_fixed >> i);
+            *sin_fixed += (*cos_fixed >> i); 
+            *cos_fixed = cos_fixed_next;
             phi += atantable[i];
         } else if (phi > *theta){
-            cos_c_next = *cos_c + (*sin_c >> i);
-            *sin_c -= (*cos_c >> i); 
-            *cos_c = cos_c_next;
+            cos_fixed_next = *cos_fixed + (*sin_fixed >> i);
+            *sin_fixed -= (*cos_fixed >> i); 
+            *cos_fixed = cos_fixed_next;
             phi -= atantable[i];
         }
         

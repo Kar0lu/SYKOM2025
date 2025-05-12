@@ -1,9 +1,9 @@
-module cordic #( parameter WIDTH = 16 ) (
+module cordic #( parameter WIDTH = 32 ) (
     input clk, rst,                                 // control signals from processor
     input valid_in,                                 // control signal from angle_normalizer
     input signed [WIDTH-1:0] angle_in,              // quantized angle from angle_normalizer
     output reg signed [WIDTH-1:0] cos_out, sin_out, // value passed to result_converter
-    output reg done                           // control signal passed to result_converter
+    output reg done                                 // control signal passed to result_converter
 );
 
     // FSM states
@@ -20,24 +20,40 @@ module cordic #( parameter WIDTH = 16 ) (
     reg [6:0] i;
 
     // arctangent lookup table
-    reg signed [15:0] atantable [0:WIDTH-1];
+    reg signed [WIDTH-1:0] atantable [0:WIDTH-1];
     initial begin
-        atantable[0]  = 16'h4000;
-        atantable[1]  = 16'h25C8;
-        atantable[2]  = 16'h13F6;
-        atantable[3]  = 16'h0A22;
-        atantable[4]  = 16'h0516;
-        atantable[5]  = 16'h028B;
-        atantable[6]  = 16'h0145;
-        atantable[7]  = 16'h00A2;
-        atantable[8]  = 16'h0051;
-        atantable[9]  = 16'h0029;
-        atantable[10] = 16'h0014;
-        atantable[11] = 16'h000A;
-        atantable[12] = 16'h0005;
-        atantable[13] = 16'h0003;
-        atantable[14] = 16'h0002;
-        atantable[15] = 16'h0001;
+        atantable[0] = 32'h40000000;
+        atantable[1] = 32'h25C80A3B;
+        atantable[2] = 32'h13F670B7;
+        atantable[3] = 32'h0A2223A8;
+        atantable[4] = 32'h05161A86;
+        atantable[5] = 32'h028BAFC3;
+        atantable[6] = 32'h0145EC3D;
+        atantable[7] = 32'h00A2F8AA;
+        atantable[8] = 32'h00517CA7;
+        atantable[9] = 32'h0028BE5D;
+        atantable[10] = 32'h00145F30;
+        atantable[11] = 32'h000A2F98;
+        atantable[12] = 32'h000517CC;
+        atantable[13] = 32'h00028BE6;
+        atantable[14] = 32'h000145F3;
+        atantable[15] = 32'h0000A2FA;
+        atantable[16] = 32'h0000517D;
+        atantable[17] = 32'h000028BE;
+        atantable[18] = 32'h0000145F;
+        atantable[19] = 32'h00000A30;
+        atantable[20] = 32'h00000518;
+        atantable[21] = 32'h0000028C;
+        atantable[22] = 32'h00000146;
+        atantable[23] = 32'h000000A3;
+        atantable[24] = 32'h00000051;
+        atantable[25] = 32'h00000029;
+        atantable[26] = 32'h00000014;
+        atantable[27] = 32'h0000000A;
+        atantable[28] = 32'h00000005;
+        atantable[29] = 32'h00000003;
+        atantable[30] = 32'h00000001;
+        atantable[31] = 32'h00000001;
     end
 
     always @(posedge clk or posedge rst) begin
@@ -55,13 +71,13 @@ module cordic #( parameter WIDTH = 16 ) (
                     done <= 0;
                     if (valid_in) begin
                         $display("CORDIC RECIVED NUMBER:\t\t%h", angle_in);
-                        if (angle_in == 16'h4000) begin
-                            sin_out <= 16'h5A82;
-                            cos_out <= 16'h5A82;
+                        if (angle_in == 32'h40000000) begin // 45 degrees
+                            sin_out <= 32'h5A820000;
+                            cos_out <= 32'h5A820000;
                             state   <= DONE;
-                        end else if (angle_in == 16'h0000) begin
-                            sin_out <= 16'h0000;
-                            cos_out <= 16'h8000;
+                        end else if (angle_in == 32'h00000000) begin // 0 degrees
+                            sin_out <= 32'h00000000;
+                            cos_out <= 32'h80000000;
                             state   <= DONE;
                         end else begin
                             state <= INIT;
@@ -70,8 +86,8 @@ module cordic #( parameter WIDTH = 16 ) (
                 end
 
                 INIT: begin
-                    sin_out        <= 16'h0000;   // sin = 0
-                    cos_out        <= 16'h4DBA;   // cos = scaling factor
+                    sin_out        <= 32'h00000000;   // sin = 0
+                    cos_out        <= 32'h4DBA76D4;   // cos = scaling factor
                     cos_next       <= 0;
                     phi            <= 0;
                     i              <= 0;

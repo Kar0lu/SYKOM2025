@@ -1,4 +1,6 @@
 /build/*
 /vcd/*
+/utils/cordic_results.txt
+/utils/test.txt
 
 !.gitkeep
