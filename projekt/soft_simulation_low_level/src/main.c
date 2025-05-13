@@ -214,9 +214,14 @@ int main(int argc, char* argv[]) {
                 // print_binary_float(file, (float)cos_fixed / (1LL << 31), 32); fprintf(file, " ");
                 fprintf(file, "%08x ", sin_fixed);
                 fprintf(file, "%08x ", cos_fixed);
-                fprintf(file, "%11.8f ", sin_float);
-                fprintf(file, "%11.8f ", cos_float);
-                fprintf(file, "%11.8f %11.8f\n", sin_lib_float, cos_lib_float);
+                fconv.f = sin_float;
+                fprintf(file, "%08x ", fconv.u);
+                fconv.f = cos_float;
+                fprintf(file, "%08x ", fconv.u);
+                fconv.f = sin_lib_float;
+                fprintf(file, "%08x ", fconv.u);
+                fconv.f = cos_lib_float;
+                fprintf(file, "%08x\n", fconv.u);
                 // i, angle_int, angle_frac, angle_fixed, flips,
                 // sin_fixed, cos_fixed,
                 // sin_fixed_float, cos_fixed_float,

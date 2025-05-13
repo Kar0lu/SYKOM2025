@@ -58,7 +58,6 @@ void preprocess_angle(float* angle_float, int32_t* angle_int, int32_t* angle_fra
             *angle_frac = 0; // too small to represent
         }
     }
-    char is_int = *angle_frac == 0x00000000 ? 1 : 0;
 
     if(sign) {
         *angle_frac = -*angle_frac;

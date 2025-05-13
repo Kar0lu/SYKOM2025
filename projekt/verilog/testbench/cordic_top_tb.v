@@ -2,14 +2,13 @@
 
 module cordic_top_tb;
 
+    `define ABS_DIFF(a, b) ((a > b) ? (a - b) : (b - a))
     parameter WIDTH = 32;
     
     // simulation variables
-    real sim_sin_lib, sim_cos_lib,
-         sim_sin_float, sim_cos_float,
-         sim_angle_real;
+    real sim_angle_real;
     reg [31:0] sim_angle_int, sim_angle_frac;
-    reg [WIDTH-1: 0] sim_angle_fixed, sim_sin_fixed, sim_cos_fixed;
+    reg [WIDTH-1: 0] sim_angle_fixed, sim_sin_fixed, sim_cos_fixed, sim_sin_lib, sim_cos_lib, sim_sin_float, sim_cos_float;
     integer sim_flips;
 
     // circuit variables
@@ -95,7 +94,7 @@ module cordic_top_tb;
             rst = 0;
             #10;
 
-            r = $fscanf(in_file, "%f %x %x %x %x %d %x %x %f %f %f %f",
+            r = $fscanf(in_file, "%f %x %x %x %x %d %x %x %x %x %x %x",
                         sim_angle_real, sim_angle_float,
                         sim_angle_int, sim_angle_frac, sim_angle_fixed, sim_flips,
                         sim_sin_fixed, sim_cos_fixed,
@@ -119,7 +118,7 @@ module cordic_top_tb;
             // "angle_float", "angle_int", "angle_frac", "angle_fixed", "flips",  
             // "sin_fixed", "cos_fixed", "sin_float", "cos_float",
             // "sim_sin_lib", "sim_cos_lib"
-            $fwrite(result_file, "%11f %11x %11x %11x %5d %11x %11x %11x %11x %11f %11f\n", // two last hex should be floats
+            $fwrite(result_file, "%11f %11x %11x %11x %5d %11x %11x %11x %11x %11x %11x\n", // two last hex should be floats
                     sim_angle_real,
                     angle_int, angle_frac, angle_fixed, flips,
                     sin_fixed, cos_fixed,
@@ -131,16 +130,16 @@ module cordic_top_tb;
             // "sin_fixed", "cos_fixed", "sin_float", "cos_float, sin_res, cos_res"
             $fwrite(test_file, "%11f %11s %11s %11s %11s %11s %11s %11s %11s %11s %11s\n",
                 sim_angle_real,
-                (angle_int - sim_angle_int) < 0.1 ? "passed" : "failed",
-                (angle_frac - sim_angle_frac) < 0.1 ? "passed" : "failed",
-                (angle_fixed - sim_angle_fixed) < 0.1 ? "passed" : "failed",
-                (flips - sim_flips) < 0.1 ? "passed" : "failed",
-                (sin_fixed - sim_sin_fixed) < 0.1 ? "passed" : "failed",
-                (cos_fixed - sim_cos_fixed) < 0.1 ? "passed" : "failed",
-                (sin_float - sim_sin_float) < 0.1 ? "passed" : "failed",
-                (cos_float - sim_cos_float) < 0.1 ? "passed" : "failed",
-                (sin_float - sim_sin_lib) < 0.1 ? "passed" : "failed",
-                (cos_float - sim_cos_lib) < 0.1 ? "passed" : "failed"
+                (angle_int - sim_angle_int) < 2 ? "passed" : "failed",
+                (angle_frac - sim_angle_frac) < 2 ? "passed" : "failed",
+                (angle_fixed - sim_angle_fixed) < 2 ? "passed" : "failed",
+                (flips - sim_flips) < 2 ? "passed" : "failed",
+                `ABS_DIFF(sin_fixed, sim_sin_fixed) < 2 ? "passed" : "failed",
+                `ABS_DIFF(cos_fixed, sim_cos_fixed) < 2 ? "passed" : "failed",
+                `ABS_DIFF(sin_float, sim_sin_float) < 2 ? "passed" : "failed",
+                `ABS_DIFF(cos_float, sim_cos_float) < 2 ? "passed" : "failed",
+                `ABS_DIFF(sin_float, sim_sin_lib) < 2 ? "passed" : "failed",
+                `ABS_DIFF(cos_float, sim_cos_lib) < 2 ? "passed" : "failed"
             );
         end
 

@@ -35,6 +35,8 @@ module angle_normalizer #( parameter WIDTH = 32 ) (
     wire signed [8:0] exp_signed = {1'b0, exp_raw};
     wire signed [8:0] exp = exp_signed - 32'sd127;
 
+    wire signed [63:0] angle_combined = (((angle_int << 32) + (angle_frac << 1)) * ((1 << 32) / 180)) >> 32;
+
     // FSM
     always @(posedge clk or posedge rst) begin
         if (rst) begin
@@ -54,42 +56,65 @@ module angle_normalizer #( parameter WIDTH = 32 ) (
                 EXTRACT_INT: begin // split angle from IEEE754 to integer and fractional part
                     $display("ANGLE_NORMALIZER IN:\t\t%d %d %b", sign, exp, mantissa);
 
-                    if(exp_raw == 0 || exp_raw == 255) begin
-                        angle_out <= 0;
-                        flips <= 0;
-                        state <= DONE;
+                    if(exp >= 23) begin
+                        angle_frac <= 0;
+                        if (sign) begin
+                            angle_int <= -(mantissa << (exp - 23));
+                        end else begin
+                            angle_int <= mantissa << (exp - 23);
+                        end
+                        state <= NORM_180;
+                    end else if (exp >= 0) begin
+                        if (sign) begin
+                            angle_int <= -(mantissa >> (23 - exp));
+                            angle_frac <= -((mantissa & ((1 << (23 - exp)) - 1)) << (8 + exp));
+                        end else begin
+                            angle_int <= mantissa >> (23 - exp);
+                            angle_frac <= (mantissa & ((1 << (23 - exp)) - 1)) << (8 + exp);
+                        end
+                        state <= NORM_180;
                     end else begin
-                        angle_frac  <= (mantissa << exp) & 24'h7FFFFF;
-                        is_int      <= ((mantissa << exp) & 24'h7FFFFF) == 24'h000000 ? 1 : 0;
-
-                        if (sign) angle_int <= -(mantissa >> (23 - exp));
-                        else      angle_int <= mantissa >> (23 - exp);
-
+                        angle_int <= 0;
+                        if (sign) begin
+                            if (exp + 8 >= 0) begin
+                                angle_frac <= -(((1 << 23) | mantissa) << (exp + 8));
+                            end else if (exp + 8 >= -31) begin
+                                angle_frac <= -(((1 << 23) | mantissa) >> (-exp - 8));
+                            end else begin
+                                angle_frac <= 0;
+                            end
+                        end else begin
+                            if (exp + 8 >= 0) begin
+                                angle_frac <= ((1 << 23) | mantissa) << (exp + 8);
+                            end else if (exp + 8 >= -31) begin
+                                angle_frac <= ((1 << 23) | mantissa) >> (-exp - 8);
+                            end else begin
+                                angle_frac <= 0;
+                            end
+                        end
                         state <= NORM_180;
                     end
-                    
-                    
                 end
                 NORM_180: begin
                     $display("ANGLE_NORMALIZER INT:\t\t%4d", angle_int);
-                    if      (angle_int > 180)   angle_int <= angle_int - 360;
-                    else if (angle_int < -180)  angle_int <= angle_int + 360;
+                    if      ((angle_int < -180) || (angle_int == -180 && angle_frac < 0))   angle_int <= angle_int + 360;
+                    else if ((angle_int > 180) || (angle_int == 180 && angle_frac > 0))  angle_int <= angle_int - 360;
                     else                        state <= NORM_45;
                 end
                 NORM_45: begin  // normalize to the range [-45, 45]
-                    if (angle_int > 45) begin
+                    if ((angle_int > 45) || (angle_int == 45 && angle_frac > 0)) begin
                         angle_int <= angle_int - 90;
                         flips      <= flips - 1;
-                    end else if (angle_int < -45) begin
+                    end else if ((angle_int < -45) || (angle_int == -45 && angle_frac < 0)) begin
                         angle_int <= angle_int + 90;
                         flips      <= flips + 1;
                     end else begin
                         state <= CONVERT;
                     end
                 end
-                CONVERT: begin // uniform linear quantization to 16bit signed value
+                CONVERT: begin // uniform linear quantization to 32bit signed value
                     $display("ANGLE_NORMALIZER NORM:\t\t%3d %d", angle_int, flips);
-                    angle_out <= (angle_int <<< WIDTH-2) / 45;
+                    angle_out <= angle_combined;
                     state     <= DONE;
                 end
                 DONE: begin
