@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
 
             break;
         case 'i':
-            fprintf(file, "%s %s %s %s %s %s %s %s %s %s %s %s \r\n", "angle", "angle_hex", "angle_int", "angle_frac", "angle_fixed", "flips", "sin_fixed", "cos_fixed", "sin_fixed_float", "cos_fixed_float", "sin_lib_float", "cos_lib_float");
+            fprintf(file, "%s %s %s %s %s %s %s %s %s %s \r\n", "angle", "angle_hex", "angle_int", "angle_frac", "angle_fixed", "flips", "sin_fixed", "cos_fixed", "sin_fixed_float", "cos_fixed_float");
 
             // calculating angles from -180 to 179
             for(; start < end+step; start = start + step){
@@ -218,10 +218,8 @@ int main(int argc, char* argv[]) {
                 fprintf(file, "%08x ", fconv.u);
                 fconv.f = cos_float;
                 fprintf(file, "%08x ", fconv.u);
-                fconv.f = sin_lib_float;
-                fprintf(file, "%08x ", fconv.u);
-                fconv.f = cos_lib_float;
-                fprintf(file, "%08x\n", fconv.u);
+                fprintf(file, "%11.8f ", sin_lib_float);
+                fprintf(file, "%11.8f\n", cos_lib_float);
                 // i, angle_int, angle_frac, angle_fixed, flips,
                 // sin_fixed, cos_fixed,
                 // sin_fixed_float, cos_fixed_float,
