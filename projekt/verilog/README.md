@@ -9,7 +9,7 @@
 - `-DBUILD` - builds module for production
 
 # Running AXI testbench
-- `iverilog -g2005-sv -o ./build/axi_cordic_sim ./modules/AXI/axil.sv ./modules/angle_normalizer.v ./modules/cordic.v ./modules/result_converter.v ./modules/cordic_top.v ./testbench/axil_tb.sv`
+- `iverilog -DBUILD -g2005-sv -o ./build/axi_cordic_sim ./modules/AXI/axil.sv ./modules/angle_normalizer.v ./modules/cordic.v ./modules/result_converter.v ./modules/cordic_top.v ./testbench/axil_tb.sv`
 - `vvp ./build/axi_cordic_sim`
 - `gtkwave ./vcd/axil_tb.vcd`
 

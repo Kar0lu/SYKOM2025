@@ -33,15 +33,19 @@ module axil_tb;
 
     // For read test
     logic [31:0] cos_read_data, sin_read_data;
-    integer infile, outfile, r;
-    integer angle_deg;
-    real    sin_pre, cos_pre,
-            sin_out_real, cos_out_real,
-            sin_err, cos_err,
-            sin_err_acc, cos_err_acc;
-    reg signed [15:0] cos_ieee754, sin_ieee754;
-    reg [31:0] angle_ieee754;
-    reg [15:0] sin_ieee754_in, cos_ieee754_in;
+
+    // simulation variables
+    real sim_angle_real, sim_sin_lib, sim_cos_lib;
+    reg [31:0] sim_angle_int, sim_angle_frac;
+    reg [31: 0] sim_angle_fixed, sim_sin_fixed, sim_cos_fixed, sim_sin_float, sim_cos_float;
+    integer sim_flips;
+
+    // circuit variables
+    reg [31:0] sim_angle_float;
+    wire [31:0] sin_float, cos_float;
+
+    // testbench variables
+    integer in_file, result_file, r;
 
     axil #(
         .ADDR_WIDTH(ADDR_WIDTH),
@@ -87,7 +91,7 @@ module axil_tb;
             AWADDR  <= addr;
             AWVALID <= 1;
             WDATA   <= data;
-            WSTRB   <= strobe;
+            WSTRB   <= strobe; 
             WVALID  <= 1;
             BREADY <= 1;
 
@@ -140,49 +144,39 @@ module axil_tb;
 
 
     task test_with_files();
-    $fwrite(outfile,"%9s %15s %15s %15s %15s %15s %15s %15s %15s %15s %15s\n",
-                "angle_deg", "ieee754_hex",  
-                "sin_pre", "sin_out", "sin_out_real", "sin_err", 
-                "cos_pre", "cos_out", "cos_out_real", "cos_err",
-                "flip_out"
-                
+        $fwrite(result_file, "%11s %11s %11s %11s %5s %11s %11s %11s %11s %11s %11s\n",
+            "angle_float", "angle_int", "angle_frac", "angle_fixed", "flips",  
+            "sin_fixed", "cos_fixed", "sin_float", "cos_float",
+            "sim_sin_lib", "sim_cos_lib"
         );
-        while (!$feof(infile)) begin
+        while (!$feof(in_file)) begin
             // Read angle (degrees), IEEE754 hex, sin_ieee754, cos_ieee754, real sin, real cos
-            r = $fscanf(infile, "%d\t%h\t%h\t%h\t%f\t%f\n",
-                        angle_deg, angle_ieee754, cos_ieee754_in, sin_ieee754_in,
-                        sin_pre, cos_pre);
-            $display("\nTESTING ANGLE\t\t%d", angle_deg);
+            r = $fscanf(in_file, "%f %x %x %x %x %d %x %x %x %x %f %f",
+                sim_angle_real, sim_angle_float,
+                sim_angle_int, sim_angle_frac, sim_angle_fixed, sim_flips,
+                sim_sin_fixed, sim_cos_fixed,
+                sim_sin_float, sim_cos_float,
+                sim_sin_lib, sim_cos_lib
+            );
+            $display("\nTESTING ANGLE\t\t%d", sim_angle_real);
 
             // Writing to registers
-            axi_write(4'h4, angle_ieee754, 4'hF);
+            axi_write(4'h4, sim_angle_float, 4'hF);
             axi_write(4'h0, 32'd1, 4'hF);
 
             // Polling and reading
             poll_and_read_result(cos_read_data, sin_read_data);
-
-            cos_ieee754 = cos_read_data[15:0];
-            sin_ieee754 = sin_read_data[15:0];
-
-            sin_out_real = sin_ieee754/32768.0;
-            cos_out_real = cos_ieee754/32768.0;
-            sin_err = sin_out_real - sin_pre;
-            cos_err = cos_out_real - cos_pre;
-            sin_err_acc = sin_err_acc + sin_err * sin_err;
-            cos_err_acc = cos_err_acc + cos_err * cos_err;
-
-            // Print results: input angle, output Q15 values, precomputed floats
-            $fwrite(outfile, "%9d %15h %15.6f %15h %15.6f %15.6f %15.6f %15h %15.6f %15.6f\n",
-                    angle_deg, angle_ieee754,   
-                    sin_pre, sin_ieee754, sin_out_real, sin_err, 
-                    cos_pre, cos_ieee754, cos_out_real, cos_err
+        
+            // writing testbench results to test.txt
+            $fwrite(result_file, "%11f %11x %11x %11f %11f\n",
+                sim_angle_real,
+                sin_read_data, cos_read_data,
+                sim_sin_lib, sim_cos_lib
             );
         end
 
-        $fwrite(outfile, "Accumulated relative sin error: %f\n", sin_err_acc/360);
-        $fwrite(outfile, "Accumulated relative cos error: %f", cos_err_acc/360);
-        $fclose(infile);
-        $fclose(outfile);
+        $fclose(in_file);
+        $fclose(result_file);
     endtask
 
     initial BREADY = 1'b0;
@@ -193,15 +187,15 @@ module axil_tb;
 
 
     initial begin
-        infile = $fopen("./utils/input_data.txt", "r");
-        outfile = $fopen("./utils/results_through_AXI.txt", "w");
+        in_file = $fopen("./utils/input_data.txt", "r");
+        result_file = $fopen("./utils/results_through_AXI.txt", "w");
 
-        if (infile == 0) begin
+        if (in_file == 0) begin
             $display("Error opening infile.");
             $finish;
         end
 
-        if (outfile == 0) begin
+        if (result_file == 0) begin
             $display("Error opening outfile.");
             $finish;
         end

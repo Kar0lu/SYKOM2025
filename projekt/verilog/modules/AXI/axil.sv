@@ -52,8 +52,7 @@ module axil #(
     // Cordic connections
     wire cordic_done;
     reg cordic_rst, cordic_valid_in;
-    wire [2:0] cordic_flip;
-    wire [15:0] cos_res, sin_res;
+    wire [31:0] cos_res, sin_res;
 
     // Our registers
     reg [31:0] ctrl_reg, in_angle_reg, out_cos_reg, out_sin_reg;
@@ -188,14 +187,13 @@ module axil #(
 
     // Cordic instantiation
     cordic_top cordic(
-    .clk(cordic_clk), 
-    .rst(cordic_rst), 
-    .valid_in(cordic_valid_in),
-    .angle_ieee754(in_angle_reg),
-    .cos_ieee754(cos_res),
-    .sin_ieee754(sin_res),
-    .flip_out(cordic_flip),
-    .done(cordic_done)
+        .clk(cordic_clk), 
+        .rst(cordic_rst), 
+        .valid_in(cordic_valid_in),
+        .angle_float(in_angle_reg),
+        .cos_float(cos_res),
+        .sin_float(sin_res),
+        .done(cordic_done)
     );
 
     // Statuses: ctrl_reg[16] - done, ctrl_reg[17] - busy
@@ -256,8 +254,8 @@ module axil #(
                 
                 2'b10: // Busy
                     if(cordic_done_pulse) begin
-                        out_cos_reg[15:0] <= cos_res;
-                        out_sin_reg[15:0] <= sin_res;
+                        out_cos_reg <= cos_res;
+                        out_sin_reg <= sin_res;
                         ctrl_reg[17:16] <= 2'b01; // done
                     end
                 
