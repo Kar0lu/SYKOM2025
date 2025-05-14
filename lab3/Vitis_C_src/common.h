@@ -1,5 +1,6 @@
 #ifndef COMMON_H
 #define COMMON_H
+#include <stddef.h>
 
 // Address Space
 #define RAW_SPACE(addr) (*(volatile unsigned long *)(addr))
@@ -35,5 +36,13 @@ char* recive_UART_chars(int max_len);
 void exit_simulation();
 
 void print_32b(unsigned int v);
+
+void heap_init(void);
+
+void *malloc(size_t size);
+
+void free(void *ptr);
+
+void handle_out_of_heap(void);
 
 #endif

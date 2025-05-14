@@ -1,5 +1,5 @@
 #include "common.h"
-#include <stdlib.h>
+#include <stddef.h>
 
 void send_UART_char(char s) {
   while ((RAW_SPACE(XUARTPS_SR_OFFSET) & XUARTPS_SR_TXFULL) > 0);
@@ -24,6 +24,10 @@ char* recive_UART_chars(int max_len) {
     int current_len = 0;
     max_len = (max_len % 4) == 0 ? max_len : max_len + 4 - (max_len % 4);
     char* ptr = (char *) malloc(sizeof(char)*(max_len+1));
+
+    if(ptr == NULL)
+        handle_out_of_heap();
+
     char tmp;
 
     while(1) {
@@ -44,7 +48,6 @@ char* recive_UART_chars(int max_len) {
             break;
         }
     }
-
 
     return ptr;
 }
