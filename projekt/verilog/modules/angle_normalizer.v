@@ -1,17 +1,22 @@
 `timescale 1ns / 1ps
 
-module angle_normalizer #( parameter WIDTH = 32 ) (
-    input clk, rst, valid_in,                      // control signals from processor
+module angle_normalizer #(parameter WIDTH = 32)(
+    input clk, rst, valid_in,                   // control signals from processor
     input [31:0] angle_in,                      // float value from processor
     output reg signed [WIDTH-1:0] angle_out,    // value passed to cordic.v
-    output reg signed [2:0] flips,               // value passed to result_converter.v
-    output reg done,                        // control signal to cordic.v
-    output reg ready,                        // control signal to processor
+    output reg signed [2:0] flips,              // value passed to result_converter.v
+    output reg done,                            // control signal to cordic.v
+    output reg ready                            // control signal to processor
 
-    // testing
-    output reg signed [31:0] angle_int, angle_frac,
-    output reg signed [WIDTH-1:0] angle_fixed
+    `ifndef BUILD
+        ,output reg signed [31:0] angle_int, angle_frac,
+        output reg signed [WIDTH-1:0] angle_fixed
+    `endif
 );
+    `ifdef BUILD
+        reg signed [31:0] angle_int, angle_frac;
+        reg signed [WIDTH-1:0] angle_fixed;
+    `endif
 
     // FSM states
     reg [2:0] state;
@@ -23,13 +28,10 @@ module angle_normalizer #( parameter WIDTH = 32 ) (
               DONE        = 3'd5;
     reg fsm_running;
 
-    // internal registers
-    reg is_int; // check if angle is integer
-
     // internal wires
-    wire sign = angle_in[31]; // sign of angle_in
-    wire [7:0] exp_raw = angle_in[30:23];  // exponent of angle_in
-    wire [22:0] mantissa_raw = angle_in[22:0]; // mantissa of angle_in
+    wire sign = angle_in[31];
+    wire [7:0] exp_raw = angle_in[30:23];
+    wire [22:0] mantissa_raw = angle_in[22:0];
 
     wire [23:0] mantissa = {1'b1, mantissa_raw};
     wire signed [8:0] exp_signed = {1'b0, exp_raw};
@@ -53,8 +55,8 @@ module angle_normalizer #( parameter WIDTH = 32 ) (
                         state <= EXTRACT_INT;
                     end
                 end
-                EXTRACT_INT: begin // split angle from IEEE754 to integer and fractional part
-                    $display("ANGLE_NORMALIZER IN:\t\t%d %d %b", sign, exp, mantissa);
+                EXTRACT_INT: begin // split given float to 32 bit int and Q1.31 fraction
+                    `ifdef DEBUG $display("ANGLE_NORMALIZER IN:\t\t%d %d %b", sign, exp, mantissa); `endif
 
                     if(exp >= 23) begin
                         angle_frac <= 0;
@@ -95,8 +97,8 @@ module angle_normalizer #( parameter WIDTH = 32 ) (
                         state <= NORM_180;
                     end
                 end
-                NORM_180: begin
-                    $display("ANGLE_NORMALIZER INT:\t\t%4d", angle_int);
+                NORM_180: begin // normalize to the range [-180, 180]
+                    `ifdef DEBUG $display("ANGLE_NORMALIZER INT:\t\t%4d", angle_int); `endif
                     if      ((angle_int < -180) || (angle_int == -180 && angle_frac < 0))   angle_int <= angle_int + 360;
                     else if ((angle_int > 180) || (angle_int == 180 && angle_frac > 0))  angle_int <= angle_int - 360;
                     else                        state <= NORM_45;
@@ -112,18 +114,19 @@ module angle_normalizer #( parameter WIDTH = 32 ) (
                         state <= CONVERT;
                     end
                 end
-                CONVERT: begin // uniform linear quantization to 32bit signed value
-                    $display("ANGLE_NORMALIZER NORM:\t\t%3d %d", angle_int, flips);
+                CONVERT: begin // uniform linear quantization to 32 bit signed value
+                    `ifdef DEBUG $display("ANGLE_NORMALIZER NORM:\t\t%3d %d", angle_int, flips); `endif
                     angle_out <= angle_combined;
                     state     <= DONE;
                 end
                 DONE: begin
-                    $display("ANGLE_NORMALIZER SEND NUMBER:\t%h %f", angle_out, angle_out/4294967296.0*180.0);
+                    `ifdef DEBUG $display("ANGLE_NORMALIZER SEND NUMBER:\t%h %f", angle_out, angle_out/4294967296.0*180.0); `endif
                     done <= 1;
                     state <= IDLE;
                 end
+
+                default: state <= IDLE;
             endcase
         end
     end
-
 endmodule

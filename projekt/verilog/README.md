@@ -1,7 +1,12 @@
-# Running CORDIC module testbench
+# CORDIC
+## Running testbench
 - `iverilog -o ./build/cordic_top_sim ./modules/angle_normalizer.v ./modules/cordic.v ./modules/result_converter.v ./modules/cordic_top.v ./testbench/cordic_top_tb.v`
 - `vvp ./build/cordic_top_sim`
 - `gtkwave ./vcd/cordic_top_tb.vcd`
+
+## Flags
+- `-DDEBUG` - displays additional informations on console
+- `-DBUILD` - builds module for production
 
 # Running AXI testbench
 - `iverilog -g2005-sv -o ./build/axi_cordic_sim ./modules/AXI/axil.sv ./modules/angle_normalizer.v ./modules/cordic.v ./modules/result_converter.v ./modules/cordic_top.v ./testbench/axil_tb.sv`
