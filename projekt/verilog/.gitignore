@@ -2,5 +2,6 @@
 /vcd/*
 /utils/cordic_results.txt
 /utils/test.txt
+/utils/input_data.txt
 
 !.gitkeep

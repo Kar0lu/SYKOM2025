@@ -110,7 +110,6 @@ module result_converter #(parameter WIDTH = 32)(
         // pack into IEEE 754: {sign, exponent, mantissa}
         sin_out = {sign_sin, exponent_sin, mantissa_sin[22:0]};
         cos_out = {sign_cos, exponent_cos, mantissa_cos[22:0]};
-
     end
 
 endmodule

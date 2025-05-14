@@ -76,7 +76,7 @@ module cordic #(parameter WIDTH = 32)(
                 IDLE: begin
                     done <= 0;
                     if (valid_in) begin
-                        `ifdef DEBUG $display("CORDIC RECIVED NUMBER:\t\t%h", angle_in); `endif
+                        `ifdef DEBUG $display("\n=== CORDIC ALGORYTHM ==="); `endif
                         if (angle_in == FIXED_45) begin // 45 degrees
                             sin_out <= FIXED_SIN_45;
                             cos_out <= FIXED_COS_45;
@@ -123,7 +123,6 @@ module cordic #(parameter WIDTH = 32)(
                 end
 
                 DONE: begin
-                    `ifdef DEBUG $display("CORDIC COMPUTED:\t\t%h %h", sin_out, cos_out); `endif
                     done <= 1;
                     if (!valid_in) state <= IDLE;
                 end

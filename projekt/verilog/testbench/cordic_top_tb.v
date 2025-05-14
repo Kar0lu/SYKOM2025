@@ -119,7 +119,7 @@ module cordic_top_tb;
                 sim_sin_lib, sim_cos_lib
             );
 
-            `ifdef DEBUG $display("\nTESTING ANGLE\t\t%f", sim_angle_real); `endif
+            `ifdef DEBUG $display("\nTESTING ANGLE: %f", sim_angle_real); `endif
 
             #10;
             valid_in = 1;
@@ -127,6 +127,14 @@ module cordic_top_tb;
             valid_in = 0;
             wait (done);
             #5;
+
+            `ifdef DEBUG
+                $display("\n=== ANGLE POSTPROCESSING ===");
+                $display("sin_fixed:\t%b", sin_fixed);
+                $display("cos_fixed:\t%b", cos_fixed);
+                $display("sin_float:\t%b", sin_float);
+                $display("cos_float:\t%b", cos_float);
+            `endif
 
             // "angle_float", "angle_int", "angle_frac", "angle_fixed", "flips",  
             // "sin_fixed", "cos_fixed", "sin_float", "cos_float",

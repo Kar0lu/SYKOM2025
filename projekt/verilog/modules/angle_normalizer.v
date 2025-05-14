@@ -56,7 +56,12 @@ module angle_normalizer #(parameter WIDTH = 32)(
                     end
                 end
                 EXTRACT_INT: begin // split given float to 32 bit int and Q1.31 fraction
-                    `ifdef DEBUG $display("ANGLE_NORMALIZER IN:\t\t%d %d %b", sign, exp, mantissa); `endif
+                    `ifdef DEBUG 
+                        $display("\n=== ANGLE PREPROCESSING ===");
+                        $display("sign:\t\t%b", sign);
+                        $display("exp:\t      %3d", exp);
+                        $display("mantissa:\t%b\n", mantissa);
+                    `endif
 
                     if(exp >= 23) begin
                         angle_frac <= 0;
@@ -98,7 +103,10 @@ module angle_normalizer #(parameter WIDTH = 32)(
                     end
                 end
                 NORM_180: begin // normalize to the range [-180, 180]
-                    `ifdef DEBUG $display("ANGLE_NORMALIZER INT:\t\t%4d", angle_int); `endif
+                    `ifdef DEBUG
+                        $display("angle_int: %8d %b", angle_int, angle_int);
+                        $display("angle_frac:\t%x %b\n", angle_frac, angle_frac);
+                    `endif
                     if      ((angle_int < -180) || (angle_int == -180 && angle_frac < 0))   angle_int <= angle_int + 360;
                     else if ((angle_int > 180) || (angle_int == 180 && angle_frac > 0))  angle_int <= angle_int - 360;
                     else                        state <= NORM_45;
@@ -115,12 +123,15 @@ module angle_normalizer #(parameter WIDTH = 32)(
                     end
                 end
                 CONVERT: begin // uniform linear quantization to 32 bit signed value
-                    `ifdef DEBUG $display("ANGLE_NORMALIZER NORM:\t\t%3d %d", angle_int, flips); `endif
                     angle_out <= angle_combined;
                     state     <= DONE;
                 end
                 DONE: begin
-                    `ifdef DEBUG $display("ANGLE_NORMALIZER SEND NUMBER:\t%h %f", angle_out, angle_out/4294967296.0*180.0); `endif
+                    `ifdef DEBUG
+                        $display("angle_fixed:\t%b", angle_out);
+                        $display("angle_fixed:\t%f", angle_out * 180.0 / (1<<32));
+                        $display("flips:\t      %3d", flips);
+                    `endif
                     done <= 1;
                     state <= IDLE;
                 end

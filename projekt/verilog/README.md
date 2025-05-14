@@ -19,7 +19,6 @@
 - sim_ - value from C simulation
 
 # TODO
-- make module pass the main test
+- make module pass the edge cases better
 - make sure "done" signal from result_converter actually resets angle_normalizer and cordic
-- implement conversion to float in angle_normalizer and result_converter as in C simulation
 - make gtkwave saved views
