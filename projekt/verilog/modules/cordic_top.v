@@ -30,7 +30,7 @@ module cordic_top #(parameter WIDTH = 32)(
         .flips(flips),
         .done(norm_done),
         .ready(norm_ready)
-        `ifnef TESTBENCH
+        `ifdef TESTBENCH
             ,.angle_int(angle_int),
             .angle_frac(angle_frac)
         `endif
