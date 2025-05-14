@@ -6,7 +6,7 @@
 
 ## Flags
 - `-DDEBUG` - displays additional informations on console
-- `-DBUILD` - builds module for production
+- `-DTESTBENCH` - builds module for testbenching (additional signals)
 
 # Running AXI testbench
 - `iverilog -DBUILD -g2005-sv -o ./build/axi_cordic_sim ./modules/AXI/axil.sv ./modules/angle_normalizer.v ./modules/cordic.v ./modules/result_converter.v ./modules/cordic_top.v ./testbench/axil_tb.sv`

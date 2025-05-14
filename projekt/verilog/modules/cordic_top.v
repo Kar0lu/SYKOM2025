@@ -8,13 +8,13 @@ module cordic_top #(parameter WIDTH = 32)(
     output [31:0] sin_float,
     output done
 
-    `ifndef BUILD
+    `ifdef TESTBENCH
         ,output wire signed [2:0] flips,
         output wire signed [31:0] angle_int, angle_frac, angle_fixed,
         output wire signed [WIDTH-1: 0] sin_fixed, cos_fixed
     `endif
 );
-    `ifdef BUILD
+    `ifndef TESTBENCH
         wire signed [2:0] flips;
         wire signed [31:0] angle_fixed;
         wire signed [WIDTH-1:0] sin_fixed, cos_fixed;
@@ -30,7 +30,7 @@ module cordic_top #(parameter WIDTH = 32)(
         .flips(flips),
         .done(norm_done),
         .ready(norm_ready)
-        `ifndef BUILD
+        `ifnef TESTBENCH
             ,.angle_int(angle_int),
             .angle_frac(angle_frac)
         `endif

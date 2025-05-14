@@ -8,12 +8,12 @@ module angle_normalizer #(parameter WIDTH = 32)(
     output reg done,                            // control signal to cordic.v
     output reg ready                            // control signal to processor
 
-    `ifndef BUILD
+    `ifdef TESTBENCH
         ,output reg signed [31:0] angle_int, angle_frac,
         output reg signed [WIDTH-1:0] angle_fixed
     `endif
 );
-    `ifdef BUILD
+    `ifndef TESTBENCH
         reg signed [31:0] angle_int, angle_frac;
         reg signed [WIDTH-1:0] angle_fixed;
     `endif

@@ -51,7 +51,7 @@ module cordic_top_tb;
         .sin_float(sin_float),
         .done(done)
         
-        `ifndef BUILD
+        `ifdef TESTBENCH
             ,.flips(flips),
             .angle_int(angle_int),
             .angle_frac(angle_frac),
