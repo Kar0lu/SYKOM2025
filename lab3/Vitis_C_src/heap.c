@@ -71,8 +71,10 @@ void handle_out_of_heap(void){
                     "Would you like to clear heap or exit application?\n"
                     "c - clear memory\nanything else - exit application\n");
     
-    if(recive_UART_char() == 'c')
+    if(recive_UART_char() == 'c'){
         heap_init();
+        return;
+    }
 
     exit_simulation();
 }

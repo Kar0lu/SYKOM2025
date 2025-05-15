@@ -1,6 +1,7 @@
 #include "common.h"
 
 int main() {
+    heap_init();
     volatile registers* const our_regs = (registers*) BASE_ADDR;
     char* scan;
 
@@ -13,7 +14,7 @@ int main() {
         switch (scan[0])
         {
         case '1':
-            heap_init();
+            
             // Reading from RX and writing to registers 0x0 and 0x4
             send_UART_chars("Input to ctrl_reg: ");
             scan = recive_UART_chars(8);
