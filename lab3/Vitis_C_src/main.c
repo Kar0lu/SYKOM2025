@@ -6,7 +6,6 @@ int main() {
     char* scan;
 
     send_UART_chars("\nARMv7-APP: SYKOM lab.3 ("__FILE__", "__DATE__", "__TIME__")\n");
-
     while(1){
 
         send_UART_chars("1. Test AXI-Lite\n2. Exit application\n");
@@ -16,7 +15,7 @@ int main() {
         case '1':
             
             // Reading from RX and writing to registers 0x0 and 0x4
-            send_UART_chars("Input to ctrl_reg: ");
+            send_UART_chars("\nInput to ctrl_reg: ");
             scan = recive_UART_chars(8);
 
             our_regs->ctrl_reg = chars_to_uint(scan);
@@ -24,7 +23,6 @@ int main() {
 
             send_UART_chars("\nInput to in_angle_reg: ");
             scan = recive_UART_chars(8);
-
 
             our_regs->in_angle_reg = chars_to_uint(scan);
             free(scan);
@@ -42,6 +40,7 @@ int main() {
             break;
 
         case '2':
+            send_UART_chars("\nGoodbye World!\n");
             exit_simulation();
             // We shouldn't need break here
 
