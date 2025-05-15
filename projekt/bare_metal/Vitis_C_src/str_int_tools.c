@@ -87,7 +87,7 @@ float chars2float(char* chars){
         chars++;
     }
 
-    printf("\nSign: %c\n", *(chars - (decimal_len + integral_len + 1)));
+    // printf("\nSign: %c\n", *(chars - (decimal_len + integral_len + 1)));
 
     return (sign) ? -integral_val - ((float) decimal_val / pow10(decimal_len)):
                     integral_val + ((float) decimal_val / pow10(decimal_len));

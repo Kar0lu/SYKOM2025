@@ -22,8 +22,7 @@ char recive_UART_char(void) {
 
 char* recive_UART_chars(int max_len) {
     int current_len = 0;
-    max_len = (max_len % 4) == 0 ? max_len : max_len + 4 - (max_len % 4);
-    char* ptr = (char *) malloc(sizeof(char)*(max_len+1));
+    char* ptr = (char *) malloc(max_len+1);
 
     if(ptr == NULL)
         handle_out_of_heap();

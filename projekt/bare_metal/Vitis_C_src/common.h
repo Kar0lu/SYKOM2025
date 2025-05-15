@@ -18,7 +18,7 @@
 typedef struct
 {
 unsigned int ctrl_reg;
-unsigned int in_angle_reg;
+float in_angle_reg;
 unsigned int out_cos_reg;
 unsigned int out_sin_reg;
 } registers;
